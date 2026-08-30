@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dispatch OS — Run your distribution business like a network, not a notebook</title>
+<style>
+  :root{
+    --ink:#0B0D11; --surface:#14171F; --surface2:#1B1F2A; --line:#262B38;
+    --text:#F2F0EA; --muted:#8890A0; --muted2:#5C6373;
+    --instant:#FF5A36; --standard:#3D7EFF; --good:#34C77B; --warn:#FFC24B;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, "Segoe UI", system-ui, sans-serif;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{ background:var(--ink); color:var(--text); font-family:var(--sans); line-height:1.5; overflow-x:hidden; }
+  a{color:inherit; text-decoration:none;}
+  .wrap{ max-width:1180px; margin:0 auto; padding:0 32px; }
+  @media (max-width:720px){ .wrap{padding:0 20px;} }
+  nav{ position:sticky; top:0; z-index:50; backdrop-filter:blur(10px); background:rgba(11,13,17,0.85); border-bottom:1px solid var(--line); }
+  nav .wrap{ display:flex; align-items:center; justify-content:space-between; height:64px; }
+  .logo{ font-weight:800; font-size:17px; letter-spacing:-0.3px; display:flex; align-items:center; gap:8px; }
+  .logo .dot{ width:8px; height:8px; border-radius:2px; background:var(--instant); display:inline-block; }
+  .navlinks{ display:flex; gap:28px; font-size:14px; color:var(--muted); }
+  .navlinks a:hover{ color:var(--text); }
+  .navcta{ background:var(--text); color:var(--ink); padding:9px 18px; border-radius:7px; font-size:13px; font-weight:700; }
+  @media (max-width:720px){ .navlinks{display:none;} }
+  .hero{ padding:88px 0 60px; position:relative; }
+  .eyebrow{ font-family:var(--mono); font-size:12px; letter-spacing:1.5px; color:var(--instant); font-weight:700; margin-bottom:18px; display:flex; align-items:center; gap:10px; }
+  .eyebrow::before{ content:""; width:18px; height:1px; background:var(--instant); }
+  h1{ font-size:56px; font-weight:800; letter-spacing:-1.5px; line-height:1.06; max-width:820px; }
+  h1 em{ font-style:normal; color:var(--muted2); text-decoration: line-through; text-decoration-color: var(--instant); text-decoration-thickness: 3px; }
+  @media (max-width:720px){ h1{font-size:36px;} }
+  .sub{ font-size:18px; color:var(--muted); max-width:560px; margin:22px 0 32px; }
+  .herobtns{ display:flex; gap:12px; flex-wrap:wrap; }
+  .btn-primary{ background:var(--instant); color:#0B0D11; padding:14px 26px; border-radius:8px; font-weight:700; font-size:14px; display:inline-block; }
+  .btn-secondary{ border:1px solid var(--line); color:var(--text); padding:14px 26px; border-radius:8px; font-weight:600; font-size:14px; display:inline-block; }
+  .btn-secondary:hover{ border-color:var(--muted); }
+  .board{ margin-top:64px; background:var(--surface); border:1px solid var(--line); border-radius:14px; overflow:hidden; box-shadow:0 30px 80px -30px rgba(0,0,0,0.6); }
+  .board-top{ display:flex; justify-content:space-between; align-items:center; padding:14px 20px; border-bottom:1px solid var(--line); }
+  .board-top .b1{ font-family:var(--mono); font-size:12px; color:var(--muted); }
+  .board-top .live{ display:flex; align-items:center; gap:6px; font-family:var(--mono); font-size:11px; color:var(--good); }
+  .live .pulse{ width:6px; height:6px; border-radius:50%; background:var(--good); animation:pulse 1.4s infinite; }
+  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:0.25;} }
+  .board-rows{ height:230px; overflow:hidden; position:relative; }
+  .board-rows::after{ content:""; position:absolute; inset:0; background:linear-gradient(180deg, transparent 70%, var(--surface) 100%); pointer-events:none; }
+  .board-track{ animation:scrollUp 14s linear infinite; }
+  @keyframes scrollUp{ from{transform:translateY(0);} to{transform:translateY(-50%);} }
+  .row{ display:grid; grid-template-columns:90px 1fr 110px 90px; gap:12px; padding:11px 20px; border-bottom:1px solid var(--line); font-size:12.5px; align-items:center; }
+  .row .id{ font-family:var(--mono); font-weight:700; }
+  .row .id.in{ color:var(--instant); } .row .id.st{ color:var(--standard); }
+  .row .who{ color:var(--muted); }
+  .row .amt{ font-family:var(--mono); text-align:right; }
+  .row .status{ font-family:var(--mono); font-size:10.5px; padding:3px 8px; border-radius:20px; text-align:center; }
+  .status.placed{ background:rgba(255,194,75,0.15); color:var(--warn); }
+  .status.transit{ background:rgba(61,126,255,0.15); color:var(--standard); }
+  .status.done{ background:rgba(52,199,123,0.15); color:var(--good); }
+  .stats{ border-top:1px solid var(--line); border-bottom:1px solid var(--line); background:var(--surface); }
+  .stats .wrap{ display:grid; grid-template-columns:repeat(4,1fr); }
+  .stat{ padding:26px 0; text-align:center; border-right:1px solid var(--line); }
+  .stat:last-child{ border-right:none; }
+  .stat .n{ font-family:var(--mono); font-size:26px; font-weight:800; }
+  .stat .l{ font-size:11.5px; color:var(--muted); margin-top:4px; }
+  @media (max-width:720px){ .stats .wrap{grid-template-columns:repeat(2,1fr);} .stat{border-bottom:1px solid var(--line);} }
+  section{ padding:96px 0; }
+  .tag{ font-family:var(--mono); font-size:12px; letter-spacing:1.5px; color:var(--muted); text-transform:uppercase; margin-bottom:14px; }
+  h2{ font-size:36px; font-weight:800; letter-spacing:-0.8px; max-width:640px; }
+  .lead{ color:var(--muted); font-size:16px; max-width:560px; margin-top:14px; }
+  .problem-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:14px; overflow:hidden; margin-top:44px; }
+  @media (max-width:720px){ .problem-grid{grid-template-columns:1fr;} }
+  .pcard{ background:var(--surface); padding:28px; }
+  .pcard .pnum{ font-family:var(--mono); font-size:12px; color:var(--instant); margin-bottom:10px; }
+  .pcard h3{ font-size:17px; margin-bottom:8px; }
+  .pcard p{ font-size:14px; color:var(--muted); }
+  .steps{ margin-top:48px; display:grid; grid-template-columns:repeat(3,1fr); gap:24px; }
+  @media (max-width:900px){ .steps{grid-template-columns:1fr;} }
+  .step{ position:relative; padding-left:0; }
+  .step .sn{ font-family:var(--mono); font-size:44px; font-weight:800; color:var(--surface2); -webkit-text-stroke:1px var(--line); margin-bottom:10px; }
+  .step h3{ font-size:17px; margin-bottom:8px; }
+  .step p{ font-size:14px; color:var(--muted); }
+  .step .badge{ display:inline-block; font-family:var(--mono); font-size:10.5px; padding:3px 9px; border-radius:20px; margin-top:12px; }
+  .badge.instant{ background:rgba(255,90,54,0.12); color:var(--instant); }
+  .badge.standard{ background:rgba(61,126,255,0.12); color:var(--standard); }
+  .feat-grid{ margin-top:48px; display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:14px; overflow:hidden; }
+  @media (max-width:900px){ .feat-grid{grid-template-columns:repeat(2,1fr);} }
+  @media (max-width:600px){ .feat-grid{grid-template-columns:1fr;} }
+  .feat{ background:var(--surface); padding:26px; }
+  .feat .ic{ width:34px; height:34px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:16px; margin-bottom:14px; }
+  .feat h4{ font-size:15px; margin-bottom:6px; }
+  .feat p{ font-size:13px; color:var(--muted); }
+  .calc{ background:var(--surface); border:1px solid var(--line); border-radius:16px; margin-top:44px; overflow:hidden; }
+  .calc-inner{ display:grid; grid-template-columns:1fr 1fr; }
+  @media (max-width:800px){ .calc-inner{grid-template-columns:1fr;} }
+  .calc-form{ padding:36px; border-right:1px solid var(--line); }
+  @media (max-width:800px){ .calc-form{border-right:none; border-bottom:1px solid var(--line);} }
+  .calc-result{ padding:36px; display:flex; flex-direction:column; justify-content:center; }
+  .field-row{ margin-bottom:22px; }
+  .field-row label{ display:flex; justify-content:space-between; font-size:13px; color:var(--muted); margin-bottom:10px; }
+  .field-row label .v{ font-family:var(--mono); color:var(--text); font-weight:700; }
+  input[type=range]{ width:100%; accent-color:var(--instant); }
+  .rlabel{ font-family:var(--mono); font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; }
+  .rvalue{ font-family:var(--mono); font-size:38px; font-weight:800; color:var(--good); }
+  .rsub{ font-size:13px; color:var(--muted); margin-top:6px; }
+  .rdivider{ height:1px; background:var(--line); margin:20px 0; }
+  .rmini{ display:flex; justify-content:space-between; font-size:13px; padding:6px 0; color:var(--muted); }
+  .rmini b{ color:var(--text); font-family:var(--mono); }
+  .pricing-grid{ margin-top:48px; display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  @media (max-width:900px){ .pricing-grid{grid-template-columns:1fr;} }
+  .plan{ background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:30px; display:flex; flex-direction:column; }
+  .plan.hi{ border-color:var(--instant); position:relative; }
+  .plan.hi::before{ content:"MOST PICKED"; position:absolute; top:-11px; left:24px; background:var(--instant); color:#0B0D11; font-family:var(--mono); font-size:10px; font-weight:800; padding:3px 10px; border-radius:20px; }
+  .plan .pname{ font-size:14px; color:var(--muted); font-family:var(--mono); text-transform:uppercase; letter-spacing:1px; }
+  .plan .pprice{ font-size:34px; font-weight:800; font-family:var(--mono); margin:10px 0 2px; }
+  .plan .pprice span{ font-size:14px; color:var(--muted); font-weight:400; }
+  .plan .pdesc{ font-size:13px; color:var(--muted); margin-bottom:20px; }
+  .plan ul{ list-style:none; margin-bottom:24px; flex:1; }
+  .plan li{ font-size:13.5px; padding:8px 0; border-top:1px solid var(--line); color:var(--muted); display:flex; gap:8px; }
+  .plan li::before{ content:"✓"; color:var(--good); font-weight:700; }
+  .plan .pbtn{ text-align:center; padding:12px; border-radius:8px; font-size:13px; font-weight:700; border:1px solid var(--line); }
+  .plan.hi .pbtn{ background:var(--instant); color:#0B0D11; border:none; }
+  .cta{ text-align:center; padding:100px 0; border-top:1px solid var(--line); }
+  .cta h2{ margin:0 auto; text-align:center; max-width:600px; }
+  .cta .sub{ margin:16px auto 32px; text-align:center; }
+  .cta .herobtns{ justify-content:center; }
+  footer{ border-top:1px solid var(--line); padding:36px 0; }
+  footer .wrap{ display:flex; justify-content:space-between; align-items:center; font-size:12.5px; color:var(--muted2); }
+  @media (max-width:600px){ footer .wrap{flex-direction:column; gap:10px; text-align:center;} }
+  .demo-overlay{ position:fixed; inset:0; background:rgba(5,6,9,0.82); z-index:200; display:none; align-items:center; justify-content:center; padding:24px; }
+  .demo-overlay.open{ display:flex; }
+  .demo-modal{ background:var(--ink); border:1px solid var(--line); border-radius:14px; width:100%; max-width:1180px; height:88vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 40px 100px -30px rgba(0,0,0,0.7); }
+  .demo-topbar{ display:flex; justify-content:space-between; align-items:center; padding:14px 22px; border-bottom:1px solid var(--line); flex-shrink:0; }
+  .demo-crumb{ font-family:var(--mono); font-size:13px; display:flex; align-items:center; gap:8px; }
+  .demo-crumb .sep{ color:var(--muted2); }
+  .demo-crumb .tname{ color:var(--muted); }
+  .demo-crumb .back{ cursor:pointer; color:var(--muted); }
+  .demo-crumb .back:hover{ color:var(--text); }
+  .demo-close{ cursor:pointer; color:var(--muted); font-size:22px; line-height:1; background:none; border:none; }
+  .demo-close:hover{ color:var(--text); }
+  .demo-body{ flex:1; overflow-y:auto; padding:24px; }
+  .demo-ticker{ font-family:var(--mono); font-size:11.5px; color:var(--muted); background:var(--surface); border-bottom:1px solid var(--line); padding:7px 22px; white-space:nowrap; overflow:hidden; flex-shrink:0; }
+  .demo-ticker b{ color:var(--instant); }
+  .db-tabs{ display:flex; gap:8px; margin-bottom:20px; }
+  .db-tab{ padding:8px 16px; border-radius:6px; border:1px solid var(--line); background:transparent; color:var(--muted); font-size:13px; font-weight:600; cursor:pointer; font-family:var(--sans); }
+  .db-tab.active{ background:var(--surface2); color:var(--text); }
+  .db-stats{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:26px; }
+  .db-stat{ background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:14px 16px; }
+  .db-stat .l{ font-size:11px; color:var(--muted); font-family:var(--mono); }
+  .db-stat .n{ font-size:22px; font-weight:800; font-family:var(--mono); margin-top:4px; }
+  .db-tgrid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:14px; }
+  .db-tcard{ background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:16px; }
+  .db-tcard .tt{ display:flex; justify-content:space-between; align-items:baseline; }
+  .db-tcard .tt b{ font-size:14px; }
+  .db-tcard .plan{ font-size:10.5px; background:var(--surface2); padding:2px 8px; border-radius:20px; color:var(--muted); }
+  .db-tcard .meta{ font-size:12px; color:var(--muted); margin:6px 0 12px; }
+  .db-tcard .btnrow{ display:flex; gap:8px; }
+  .db-btn{ flex:1; text-align:center; padding:8px; border-radius:6px; border:1px solid var(--line); font-size:12.5px; cursor:pointer; background:transparent; color:var(--text); font-family:var(--sans); }
+  .db-btn:hover{ border-color:var(--muted); }
+  .db-btn-primary{ background:var(--text); color:var(--ink); border:none; font-weight:700; padding:9px 16px; border-radius:6px; font-size:12.5px; cursor:pointer; }
+  .db-newbar{ display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+  .db-label{ font-family:var(--mono); font-size:11.5px; color:var(--muted); letter-spacing:1px; }
+  .db-table{ width:100%; border-collapse:collapse; font-size:13px; }
+  .db-table th{ text-align:left; color:var(--muted); font-weight:600; padding:8px 10px; border-bottom:1px solid var(--line); font-size:11.5px; }
+  .db-table td{ padding:9px 10px; border-bottom:1px solid var(--surface2); }
+  .db-mono{ font-family:var(--mono); }
+  .db-pill-in{ color:var(--instant); }
+  .db-pill-st{ color:var(--standard); }
+  .db-layout{ display:flex; gap:24px; }
+  .db-sidebar{ width:220px; flex-shrink:0; }
+  .db-select{ width:100%; padding:8px 10px; background:var(--surface2); border:1px solid var(--line); border-radius:6px; color:var(--text); font-size:13px; margin-bottom:14px; }
+  .db-credit-box{ background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px; margin-bottom:18px; }
+  .db-credit-box .l{ font-size:11px; color:var(--muted); }
+  .db-credit-box .n{ font-family:var(--mono); font-size:17px; font-weight:700; }
+  .db-order-mini{ background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:10px; margin-bottom:8px; }
+  .db-order-mini .row1{ display:flex; justify-content:space-between; font-size:11px; font-family:var(--mono); }
+  .db-order-mini .cd{ font-family:var(--mono); font-size:17px; font-weight:700; margin-top:2px; }
+  .db-pgrid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:14px; }
+  .db-pcard{ background:var(--surface); border:1px solid var(--line); border-radius:10px; overflow:hidden; }
+  .db-pcard .swatch{ height:70px; position:relative; }
+  .db-pcard .swatch .tag2{ position:absolute; top:8px; left:8px; font-family:var(--mono); font-size:10.5px; font-weight:800; padding:2px 7px; border-radius:4px; color:#0B0D11; }
+  .db-pcard .body{ padding:12px; }
+  .db-pcard .pn{ font-size:13px; font-weight:600; }
+  .db-pcard .meta2{ font-size:11px; color:var(--muted); margin:3px 0 8px; }
+  .db-pcard .price2{ font-family:var(--mono); font-weight:700; font-size:12.5px; margin-bottom:8px; }
+  .db-addbtn{ width:100%; background:var(--text); color:var(--ink); border:none; border-radius:6px; padding:7px; font-weight:700; font-size:12px; cursor:pointer; }
+  .db-qtyrow{ display:flex; align-items:center; justify-content:space-between; }
+  .db-qbtn{ width:24px; height:24px; border-radius:5px; border:1px solid var(--line); background:var(--surface2); color:var(--text); cursor:pointer; }
+  .db-cartbar{ display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+  .db-cartbtn{ background:var(--instant); color:#0B0D11; border:none; border-radius:6px; padding:8px 14px; font-weight:700; font-size:12.5px; cursor:pointer; }
+  .db-checkout-overlay{ position:fixed; inset:0; background:rgba(5,6,9,0.75); z-index:210; display:flex; align-items:center; justify-content:center; }
+  .db-checkout{ background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:22px; width:380px; max-width:90vw; }
+  .db-field{ margin-bottom:12px; }
+  .db-field .fl{ font-size:11px; color:var(--muted); margin-bottom:4px; }
+  .db-input{ width:100%; padding:8px 10px; background:var(--surface2); border:1px solid var(--line); border-radius:6px; color:var(--text); font-size:13px; box-sizing:border-box; font-family:var(--sans); }
+  *:focus-visible{ outline:2px solid var(--instant); outline-offset:2px; border-radius:4px; }
+  .reveal{ opacity:0; transform:translateY(18px); transition:opacity 0.6s ease, transform 0.6s ease; }
+  .reveal.visible{ opacity:1; transform:translateY(0); }
+  a, button{ transition:background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease; }
+  .btn-primary, .navcta, .db-btn-primary, .db-cartbtn{ transform:translateZ(0); }
+  .btn-primary:hover, .navcta:hover, .db-btn-primary:hover, .db-cartbtn:hover{ box-shadow:0 8px 24px -8px rgba(255,90,54,0.5); transform:translateY(-1px); }
+  .btn-primary:active, .navcta:active, .db-btn-primary:active, .db-cartbtn:active{ transform:translateY(0); box-shadow:none; }
+  .btn-secondary:hover{ transform:translateY(-1px); background:rgba(255,255,255,0.03); }
+  .pcard, .feat, .db-tcard, .db-pcard, .plan{ transition:border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease; }
+  .pcard:hover, .feat:hover{ border-color:var(--muted2); }
+  .db-tcard:hover, .db-pcard:hover{ border-color:var(--muted2); transform:translateY(-2px); }
+  .plan:hover{ transform:translateY(-3px); box-shadow:0 20px 50px -25px rgba(0,0,0,0.6); }
+  .db-btn:hover{ background:var(--surface2); }
+  .db-qbtn:hover{ background:var(--line); }
+  .plan .pbtn{ transition:background 0.15s ease, transform 0.12s ease; cursor:pointer; }
+  .plan .pbtn:hover{ transform:translateY(-1px); }
+  .hamburger{ display:none; flex-direction:column; gap:4px; background:none; border:none; cursor:pointer; padding:6px; }
+  .hamburger span{ width:20px; height:2px; background:var(--text); border-radius:2px; }
+  @media (max-width:720px){
+    .hamburger{ display:flex; }
+    .navlinks{ display:none !important; }
+    .navcta{ display:none; }
+  }
+  .mobile-drawer{ position:fixed; top:64px; left:0; right:0; background:var(--surface); border-bottom:1px solid var(--line); z-index:60; display:none; flex-direction:column; padding:10px 20px 18px; }
+  .mobile-drawer.open{ display:flex; }
+  .mobile-drawer a{ padding:12px 0; border-bottom:1px solid var(--line); font-size:14px; color:var(--muted); }
+  .mobile-drawer .navcta{ display:block; text-align:center; margin-top:12px; }
+  .demo-overlay{ opacity:0; transition:opacity 0.2s ease; }
+  .demo-overlay.open{ opacity:1; }
+  .demo-modal{ transform:scale(0.97) translateY(8px); transition:transform 0.25s cubic-bezier(.2,.8,.2,1); }
+  .demo-overlay.open .demo-modal{ transform:scale(1) translateY(0); }
+  .demo-body{ scrollbar-width:thin; scrollbar-color:var(--line) transparent; }
+  .demo-body::-webkit-scrollbar{ width:8px; }
+  .demo-body::-webkit-scrollbar-thumb{ background:var(--line); border-radius:8px; }
+  .toast-stack{ position:fixed; bottom:24px; right:24px; z-index:300; display:flex; flex-direction:column; gap:10px; align-items:flex-end; }
+  .toast{ background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--good); border-radius:8px; padding:12px 16px; font-size:13px; max-width:320px; box-shadow:0 20px 50px -20px rgba(0,0,0,0.6); opacity:0; transform:translateX(20px); transition:opacity 0.25s ease, transform 0.25s ease; }
+  .toast.show{ opacity:1; transform:translateX(0); }
+  .toast b{ display:block; margin-bottom:2px; }
+  .hero{ position:relative; }
+  .hero::before{ content:""; position:absolute; top:-120px; left:50%; transform:translateX(-50%); width:900px; height:420px; background:radial-gradient(ellipse at center, rgba(255,90,54,0.12), transparent 70%); pointer-events:none; z-index:0; }
+  .hero .wrap{ position:relative; z-index:1; }
+  .db-addbtn, .db-cartbtn, .db-btn-primary, .btn-primary{ cursor:pointer; }
+  select, input[type=range]{ cursor:pointer; }
+  [data-theme="light"]{
+    --ink:#F7F5F0; --surface:#FFFFFF; --surface2:#F0EEE7; --line:#E4E1D8;
+    --text:#181A1F; --muted:#6B7280; --muted2:#9CA3AF;
+  }
+  [data-theme="light"] .board-rows::after{ background:linear-gradient(180deg, transparent 70%, var(--surface) 100%); }
+  [data-theme="light"] .navcta, [data-theme="light"] .btn-primary{ color:#fff; }
+  [data-theme="light"] .plan.hi .pbtn{ color:#fff; }
+  [data-theme="light"] .db-btn-primary, [data-theme="light"] .db-cartbtn, [data-theme="light"] .db-addbtn{ color:#fff; }
+  [data-theme="light"] .hero::before{ opacity:0.5; }
+  [data-theme="light"] nav{ background:rgba(247,245,240,0.9); }
+  .nav-controls{ display:flex; align-items:center; gap:10px; }
+  .icon-btn{ background:var(--surface2); border:1px solid var(--line); border-radius:7px; width:34px; height:34px; font-size:15px; cursor:pointer; }
+  .lang-select{ background:var(--surface2); border:1px solid var(--line); border-radius:7px; color:var(--text); font-size:12.5px; padding:7px 10px; font-family:var(--sans); }
+  @media (max-width:720px){ .nav-controls{ display:none; } }
+  .role-select{ background:var(--surface2); border:1px solid var(--line); border-radius:6px; color:var(--text); font-size:12.5px; padding:6px 10px; font-family:var(--sans); cursor:pointer; }
+  .role-badge{ font-family:var(--mono); font-size:10px; font-weight:800; padding:2px 8px; border-radius:20px; }
+  .role-badge.owner{ background:rgba(255,90,54,0.15); color:var(--instant); }
+  .role-badge.supervisor{ background:rgba(61,126,255,0.15); color:var(--standard); }
+  .role-badge.staff{ background:rgba(122,128,144,0.2); color:var(--muted); }
+  .db-locked{ opacity:0.4; cursor:not-allowed !important; pointer-events:none; }
+  .team-row{ display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--surface2); }
+</style>
+</head>
+<body>
+<nav>
+  <div class="wrap">
+    <div class="logo"><span class="dot"></span>DISPATCH OS</div>
+    <div class="navlinks">
+      <a href="#problem" data-i18n="nav_why">Why it exists</a>
+      <a href="#how" data-i18n="nav_how">How it works</a>
+      <a href="#features" data-i18n="nav_features">Features</a>
+      <a href="#calc" data-i18n="nav_numbers">Your numbers</a>
+      <a href="#pricing" data-i18n="nav_pricing">Pricing</a>
+    </div>
+    <div class="nav-controls">
+      <button class="icon-btn" id="themeToggle" title="Toggle day/night theme" aria-label="Toggle theme">🌙</button>
+      <select class="lang-select" id="langSelect" aria-label="Language"></select>
+      <a href="#pricing" class="navcta" data-i18n="nav_demo">Book a demo</a>
+    </div>
+    <button class="hamburger" onclick="document.getElementById('mobileDrawer').classList.toggle('open')" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+  <div class="mobile-drawer" id="mobileDrawer">
+    <a href="#problem" data-i18n="nav_why">Why it exists</a>
+    <a href="#how" data-i18n="nav_how">How it works</a>
+    <a href="#features" data-i18n="nav_features">Features</a>
+    <a href="#calc" data-i18n="nav_numbers">Your numbers</a>
+    <a href="#pricing" data-i18n="nav_pricing">Pricing</a>
+    <div style="display:flex; gap:8px; margin-top:10px;">
+      <button class="icon-btn" id="themeToggleMobile" title="Toggle theme">🌙</button>
+      <select class="lang-select" id="langSelectMobile" aria-label="Language" style="flex:1;"></select>
+    </div>
+    <a href="#pricing" class="navcta" data-i18n="nav_demo">Book a demo</a>
+  </div>
+</nav>
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow" data-i18n="hero_eyebrow">BUILT FOR DISTRIBUTORS &amp; WHOLESALERS</div>
+    <h1 data-i18n="hero_h1">Stop running your distribution business on <em>WhatsApp and a notebook.</em></h1>
+    <p class="sub" data-i18n="hero_sub">Dispatch OS gives every distributor their own ordering platform — retailers browse your catalog, order in cases, pay on credit or cash, and you get one dashboard instead of forty chat threads.</p>
+    <div class="herobtns">
+      <a href="#pricing" class="btn-primary" data-i18n="hero_btn1">Book a 20-min demo</a>
+      <a href="#how" class="btn-secondary" data-i18n="hero_btn2">See how it works ↓</a>
+    </div>
+    <div class="board">
+      <div class="board-top">
+        <div class="b1" data-i18n="board_label">LIVE ORDER FEED — SAMPLE TENANT</div>
+        <div class="live"><span class="pulse"></span>LIVE</div>
+      </div>
+      <div class="board-rows">
+        <div class="board-track" id="track"></div>
+      </div>
+    </div>
+  </div>
+</header>
+<div class="stats">
+  <div class="wrap">
+    <div class="stat"><div class="n">₹0</div><div class="l" data-i18n="stat1">Setup cost</div></div>
+    <div class="stat"><div class="n">&lt;1 day</div><div class="l" data-i18n="stat2">To go live with your catalog</div></div>
+    <div class="stat"><div class="n">0%</div><div class="l" data-i18n="stat3">Commission on standard orders</div></div>
+    <div class="stat"><div class="n">24/7</div><div class="l" data-i18n="stat4">Retailers can order, even off-hours</div></div>
+  </div>
+</div>
+<section id="problem" class="reveal">
+  <div class="wrap">
+    <div class="tag" data-i18n="problem_tag">The problem</div>
+    <h2 data-i18n="problem_h2">Every distributor runs the same three fires.</h2>
+    <p class="lead" data-i18n="problem_lead">None of them are about demand. They're about the plumbing between you and your retailers.</p>
+    <div class="problem-grid">
+      <div class="pcard">
+        <div class="pnum">01 — ORDERING</div>
+        <h3>Orders arrive as voice notes</h3>
+        <p>Your salesman calls a shop, half-hears the order over a generator running in the background, and writes it down wrong. It ships wrong. It gets returned. You eat the cost.</p>
+      </div>
+      <div class="pcard">
+        <div class="pnum">02 — CREDIT</div>
+        <h3>Credit lives in someone's memory</h3>
+        <p>Which retailer is close to their limit? Nobody knows until a cheque bounces. Bad debt isn't a market problem — it's a visibility problem.</p>
+      </div>
+      <div class="pcard">
+        <div class="pnum">03 — STOCK</div>
+        <h3>Stockouts you find out about too late</h3>
+        <p>A fast-moving SKU runs out at the warehouse and nobody notices until three retailers have already tried to order it and given up.</p>
+      </div>
+      <div class="pcard">
+        <div class="pnum">04 — VISIBILITY</div>
+        <h3>No single view of the business</h3>
+        <p>Sales, stock, and dues sit in three different notebooks and an Excel sheet nobody updates on time. Month-end reconciliation takes days.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<section id="how" class="reveal" style="background:var(--surface); border-top:1px solid var(--line); border-bottom:1px solid var(--line);">
+  <div class="wrap">
+    <div class="tag" data-i18n="how_tag">How it works</div>
+    <h2 data-i18n="how_h2">Three steps. You keep running the business — we remove the friction.</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="sn">01</div>
+        <h3 data-i18n="how_s1_t">Load your catalog once</h3>
+        <p data-i18n="how_s1_p">SKUs, case sizes, MOQs, warehouse locations. Mark what ships same-day from your dark stock vs. standard route delivery.</p>
+      </div>
+      <div class="step">
+        <div class="sn">02</div>
+        <h3 data-i18n="how_s2_t">Retailers order directly</h3>
+        <p data-i18n="how_s2_p">Each retail shop gets a login to your storefront — they order in cases, see live stock, and their credit limit is enforced automatically.</p>
+        <span class="badge instant" data-i18n="badge_instant">Instant restock</span> <span class="badge standard" data-i18n="badge_standard">Scheduled route</span>
+      </div>
+      <div class="step">
+        <div class="sn">03</div>
+        <h3 data-i18n="how_s3_t">You run it from one console</h3>
+        <p data-i18n="how_s3_p">Every order, every rupee of credit exposure, every stock level — one dashboard. No more piecing it together at month-end.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<section id="features" class="reveal">
+  <div class="wrap">
+    <div class="tag" data-i18n="feat_tag">What's inside</div>
+    <h2 data-i18n="feat_h2">Everything a distribution business actually needs — nothing it doesn't.</h2>
+    <div class="feat-grid">
+      <div class="feat"><div class="ic" style="background:rgba(255,90,54,0.12);">📦</div><h4 data-i18n="feat1_t">Case-based catalog</h4><p data-i18n="feat1_p">Price and sell in units, cases, or bulk lots — with MOQ enforced automatically at checkout.</p></div>
+      <div class="feat"><div class="ic" style="background:rgba(61,126,255,0.12);">🏦</div><h4 data-i18n="feat2_t">Credit limits &amp; aging</h4><p data-i18n="feat2_p">Set a credit line per retailer. Orders that would breach it get blocked before they're placed, not after.</p></div>
+      <div class="feat"><div class="ic" style="background:rgba(52,199,123,0.12);">⏱️</div><h4 data-i18n="feat3_t">Two delivery lanes</h4><p data-i18n="feat3_p">Instant restock from your nearest warehouse, or standard route delivery on your regular schedule — same catalog, retailer picks.</p></div>
+      <div class="feat"><div class="ic" style="background:rgba(255,194,75,0.12);">📊</div><h4 data-i18n="feat4_t">One dashboard</h4><p data-i18n="feat4_p">GMV, order queue, stock levels, and credit exposure — live, not reconciled at month-end.</p></div>
+      <div class="feat"><div class="ic" style="background:rgba(255,90,54,0.12);">🏬</div><h4 data-i18n="feat5_t">Multi-warehouse</h4><p data-i18n="feat5_p">Run several dark stores or depots under one account, each with its own stock and delivery radius.</p></div>
+      <div class="feat"><div class="ic" style="background:rgba(61,126,255,0.12);">📱</div><h4 data-i18n="feat6_t">Retailer self-serve</h4><p data-i18n="feat6_p">Shop owners order at 11pm if they need to — no waiting for your salesman's next visit.</p></div>
+    </div>
+  </div>
+</section>
+<section id="calc" class="reveal" style="background:var(--surface); border-top:1px solid var(--line); border-bottom:1px solid var(--line);">
+  <div class="wrap">
+    <div class="tag" data-i18n="calc_tag">Your numbers</div>
+    <h2 data-i18n="calc_h2">What this is worth to a business your size.</h2>
+    <p class="lead" data-i18n="calc_lead">Rough, honest math — move the sliders to match your operation.</p>
+    <div class="calc">
+      <div class="calc-inner">
+        <div class="calc-form">
+          <div class="field-row">
+            <label><span data-i18n="calc_f1">Active retailers you serve</span> <span class="v" id="lblRetailers">120</span></label>
+            <input type="range" id="retailers" min="20" max="500" value="120" step="10">
+          </div>
+          <div class="field-row">
+            <label><span data-i18n="calc_f2">Avg. monthly order value per retailer</span> <span class="v" id="lblAov">₹18,000</span></label>
+            <input type="range" id="aov" min="5000" max="60000" value="18000" step="1000">
+          </div>
+          <div class="field-row">
+            <label><span data-i18n="calc_f3">Orders lost monthly to stockouts / mis-hears</span> <span class="v" id="lblLoss">8%</span></label>
+            <input type="range" id="loss" min="0" max="25" value="8" step="1">
+          </div>
+          <div class="field-row">
+            <label><span data-i18n="calc_f4">Bad debt as % of credit book</span> <span class="v" id="lblBad">3%</span></label>
+            <input type="range" id="bad" min="0" max="15" value="3" step="0.5">
+          </div>
+        </div>
+        <div class="calc-result">
+          <div class="rlabel" data-i18n="calc_rlabel">Estimated monthly value recovered</div>
+          <div class="rvalue" id="rTotal">₹0</div>
+          <div class="rsub" data-i18n="calc_rsub">from fewer lost orders + tighter credit control</div>
+          <div class="rdivider"></div>
+          <div class="rmini"><span data-i18n="calc_rmini1">Recovered lost-order revenue</span><b id="rLost">₹0</b></div>
+          <div class="rmini"><span>Bad debt avoided (est. 40% reduction)</span><b id="rBad">₹0</b></div>
+          <div class="rmini"><span>Your monthly plan cost</span><b id="rPlan">₹4,999</b></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<section id="pricing" class="reveal">
+  <div class="wrap">
+    <div class="tag" data-i18n="pricing_tag">Pricing</div>
+    <h2 data-i18n="pricing_h2">Flat monthly fee. No commission on standard orders.</h2>
+    <p class="lead" data-i18n="pricing_lead">Instant-lane orders carry a small per-order fee to cover dark-store logistics. Everything else is flat.</p>
+    <div class="pricing-grid">
+      <div class="plan">
+        <div class="pname">Starter</div>
+        <div class="pprice">₹1,999<span data-i18n="pricing_mo">/mo</span></div>
+        <div class="pdesc" data-i18n="plan1_desc">One warehouse, getting off WhatsApp.</div>
+        <ul>
+          <li data-i18n="plan1_l1">Up to 50 retailers</li>
+          <li data-i18n="plan1_l2">1 warehouse</li>
+          <li data-i18n="plan1_l3">Standard-lane ordering</li>
+          <li data-i18n="plan1_l4">Credit limit tracking</li>
+        </ul>
+        <a href="mailto:wadherapryank@gmail.com?subject=Dispatch%20OS%20—%20Starter%20plan&body=Hi%2C%20I%27d%20like%20to%20know%20more%20about%20the%20Starter%20plan." class="pbtn" data-i18n="talk_to_us">Talk to us</a>
+      </div>
+      <div class="plan hi">
+        <div class="pname">Growth</div>
+        <div class="pprice">₹4,999<span data-i18n="pricing_mo">/mo</span></div>
+        <div class="pdesc" data-i18n="plan2_desc">Most distributors running instant + standard.</div>
+        <ul>
+          <li data-i18n="plan2_l1">Up to 300 retailers</li>
+          <li data-i18n="plan2_l2">Up to 3 warehouses</li>
+          <li data-i18n="plan2_l3">Instant + standard lanes</li>
+          <li data-i18n="plan2_l4">Credit aging &amp; risk flags</li>
+          <li data-i18n="plan2_l5">Full dashboard &amp; exports</li>
+        </ul>
+        <a href="#" class="pbtn" data-i18n="nav_demo">Book a demo</a>
+      </div>
+      <div class="plan">
+        <div class="pname">Scale</div>
+        <div class="pprice">₹9,999<span data-i18n="pricing_mo">/mo</span></div>
+        <div class="pdesc" data-i18n="plan3_desc">Multi-city operations.</div>
+        <ul>
+          <li data-i18n="plan3_l1">Unlimited retailers</li>
+          <li data-i18n="plan3_l2">Unlimited warehouses</li>
+          <li data-i18n="plan3_l3">Priority support</li>
+          <li data-i18n="plan3_l4">API access</li>
+        </ul>
+        <a href="mailto:wadherapryank@gmail.com?subject=Dispatch%20OS%20—%20Scale%20plan&body=Hi%2C%20I%27d%20like%20to%20know%20more%20about%20the%20Scale%20plan." class="pbtn" data-i18n="talk_to_us">Talk to us</a>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="cta reveal">
+  <div class="wrap">
+    <div class="tag" style="text-align:center;" data-i18n="cta_tag">Get started</div>
+    <h2 data-i18n="cta_h2">Twenty minutes. Bring your actual retailer list.</h2>
+    <p class="sub" data-i18n="cta_sub">We'll load a slice of your real catalog into a live account and show you exactly what your retailers would see.</p>
+    <div class="herobtns">
+      <a href="#" class="btn-primary" data-i18n="hero_btn1">Book a 20-min demo</a>
+      <a href="https://wa.me/917397829282?text=Hi%2C%20I%27d%20like%20to%20talk%20about%20Dispatch%20OS" class="btn-secondary" target="_blank" rel="noopener" data-i18n="whatsapp_us">WhatsApp us</a>
+    </div>
+  </div>
+</section>
+<footer>
+  <div class="wrap">
+    <div>© 2026 Dispatch OS</div>
+    <div style="display:flex; gap:18px; align-items:center;">
+      <a href="mailto:wadherapryank@gmail.com" style="color:var(--muted);">wadherapryank@gmail.com</a>
+      <a href="https://wa.me/917397829282" target="_blank" rel="noopener" style="color:var(--muted);">+91 73978 29282</a>
+    </div>
+  </div>
+</footer>
+<div class="demo-overlay" id="demoOverlay">
+  <div class="demo-modal">
+    <div class="demo-topbar">
+      <div class="demo-crumb" id="demoCrumb"></div>
+      <button class="demo-close" onclick="closeDemo()">✕</button>
+    </div>
+    <div class="demo-ticker" id="demoTicker">▸ live demo — data resets each visit, nothing here is a real account</div>
+    <div class="demo-body" id="demoBody"></div>
+  </div>
+</div>
+<div id="checkoutOverlay"></div>
+<div id="newTenantOverlay"></div>
+<script>
+  // Live-feed hero rows
+  const names = ["Sharma General Store","Krishna Kirana","City Cold Drinks Corner","Metro Traders","Bansal Retail","Anand Stores","Gupta & Sons","Verma Kirana"];
+  const ids = () => (Math.random() > 0.5 ? "IN-" : "ST-") + Math.random().toString(36).slice(2,6).toUpperCase();
+  const statuses = ["placed","transit","done"];
+  const statusLabel = {placed:"Placed", transit:"In transit", done:"Delivered"};
+  function makeRow(){
+    const id = ids();
+    const isInstant = id.startsWith("IN");
+    const amt = Math.floor(3000 + Math.random()*38000);
+    const st = statuses[Math.floor(Math.random()*statuses.length)];
+    return `<div class="row">
+      <div class="id ${isInstant?'in':'st'}">${id}</div>
+      <div class="who">${names[Math.floor(Math.random()*names.length)]}</div>
+      <div class="amt">₹${amt.toLocaleString('en-IN')}</div>
+      <div class="status ${st}">${statusLabel[st]}</div>
+    </div>`;
+  }
+  const rows = Array.from({length:10}, makeRow).join("");
+  document.getElementById('track').innerHTML = rows + rows; // duplicate for seamless loop
+  // ROI calculator
+  const retailers = document.getElementById('retailers');
+  const aov = document.getElementById('aov');
+  const loss = document.getElementById('loss');
+  const bad = document.getElementById('bad');
+  const fmt = (n) => '₹' + Math.round(n).toLocaleString('en-IN');
+  function recalc(){
+    const R = +retailers.value, A = +aov.value, L = +loss.value/100, B = +bad.value/100;
+    document.getElementById('lblRetailers').textContent = R;
+    document.getElementById('lblAov').textContent = '₹' + (+aov.value).toLocaleString('en-IN');
+    document.getElementById('lblLoss').textContent = L*100 + '%';
+    document.getElementById('lblBad').textContent = B*100 + '%';
+    const monthlyBook = R * A;
+    const lostRecovered = monthlyBook * L * 0.6;
+    const badDebtAvoided = monthlyBook * B * 0.4;
+    const total = lostRecovered + badDebtAvoided;
+    document.getElementById('rTotal').textContent = fmt(total) + '/mo';
+    document.getElementById('rLost').textContent = fmt(lostRecovered);
+    document.getElementById('rBad').textContent = fmt(badDebtAvoided);
+  }
+  [retailers, aov, loss, bad].forEach(el => el.addEventListener('input', recalc));
+  recalc();
+  // =========================================================
+  // EMBEDDED LIVE DASHBOARD DEMO
+  // =========================================================
+  const money2 = (n) => '₹' + Math.round(n).toLocaleString('en-IN');
+  const pad2 = (n) => String(n).padStart(2,'0');
+  const S = {
+    tenants: [
+      { id:'t1', name:'Apex FMCG Distribution', category:'FMCG & Grocery', city:'Aligarh', plan:'Growth', mrr:4999 },
+      { id:'t2', name:'Metro Beverages Co.', category:'Beverages', city:'Lucknow', plan:'Starter', mrr:1999 },
+    ],
+    products: [
+      { id:'pr1', tenantId:'t1', name:'Surf Excel Detergent 1kg', mode:'instant', unitPrice:118, caseSize:12, moq:2, stock:480, eta:2, color:'#3D7EFF' },
+      { id:'pr2', tenantId:'t1', name:'Maggi Noodles (Case)', mode:'instant', unitPrice:12, caseSize:24, moq:5, stock:900, eta:3, color:'#FFC24B' },
+      { id:'pr3', tenantId:'t1', name:'Amul Ghee 1L', mode:'standard', unitPrice:585, caseSize:12, moq:1, stock:140, days:2, color:'#F4F0DE' },
+      { id:'pr4', tenantId:'t1', name:'Colgate Toothpaste 200g', mode:'standard', unitPrice:92, caseSize:20, moq:3, stock:260, days:3, color:'#34C77B' },
+      { id:'pr5', tenantId:'t2', name:'Coca-Cola 750ml (Case)', mode:'instant', unitPrice:34, caseSize:24, moq:4, stock:1200, eta:2, color:'#FF5A36' },
+      { id:'pr6', tenantId:'t2', name:'Bisleri 1L (Case)', mode:'instant', unitPrice:14, caseSize:24, moq:6, stock:2000, eta:3, color:'#3D7EFF' },
+      { id:'pr7', tenantId:'t2', name:'Real Fruit Juice 1L', mode:'standard', unitPrice:105, caseSize:12, moq:2, stock:300, days:4, color:'#FFC24B' },
+    ],
+    retailersList: [
+      { id:'r1', tenantId:'t1', shopName:'Sharma General Store', owner:'Vinod Sharma', city:'Aligarh', creditLimit:50000, creditUsed:18200 },
+      { id:'r2', tenantId:'t1', shopName:'Krishna Kirana', owner:'Meena Devi', city:'Hathras', creditLimit:30000, creditUsed:27500 },
+      { id:'r3', tenantId:'t2', shopName:'City Cold Drinks Corner', owner:'Irfan Ali', city:'Lucknow', creditLimit:80000, creditUsed:41000 },
+    ],
+    orders: [],
+    level:'platform', tenantId:null, role:'admin', retailerId:null,
+    cart:[], checkoutOpen:false, newTenantOpen:false, viewRole:'Owner',
+    team: [
+      { id:'m1', tenantId:'t1', name:'Vikram Wadhera', role:'Owner' },
+      { id:'m2', tenantId:'t1', name:'Priya Nair', role:'Supervisor' },
+      { id:'m3', tenantId:'t1', name:'Rohit Kumar', role:'Staff' },
+      { id:'m4', tenantId:'t1', name:'Sana Sheikh', role:'Staff' },
+      { id:'m5', tenantId:'t2', name:'Owner (You)', role:'Owner' },
+      { id:'m6', tenantId:'t2', name:'Ajay Mehta', role:'Staff' },
+    ],
+    tickLog: [],
+  };
+  // seed a few in-flight instant orders so the demo is alive the instant it opens
+  function seedOrder(tenantId, retailerId, retailerName, mode, minutes, itemsSrc){
+    const id = (mode==='instant'?'IN-':'ST-') + Math.random().toString(36).slice(2,6).toUpperCase();
+    return { id, tenantId, mode, retailerId, retailerName, paymentType: Math.random()>0.4?'Credit':'Cash',
+      items: itemsSrc, total: itemsSrc.reduce((s,i)=>s+i.lineTotal,0),
+      status:'Placed', etaMinutes: minutes, remaining: minutes*60, deliveredAt:null, days: mode==='standard'?3:null };
+  }
+  S.orders.push(seedOrder('t1','r1','Sharma General Store','instant',2,[{name:'Surf Excel Detergent 1kg',qty:3,lineTotal:118*12*3}]));
+  S.orders.push(seedOrder('t1','r2','Krishna Kirana','instant',3,[{name:'Maggi Noodles (Case)',qty:6,lineTotal:12*24*6}]));
+  S.orders.push(seedOrder('t2','r3','City Cold Drinks Corner','instant',2,[{name:'Coca-Cola 750ml (Case)',qty:5,lineTotal:34*24*5}]));
+  function pushTick(msg){
+    S.tickLog.push(msg);
+    if (S.tickLog.length>1) S.tickLog.shift();
+    const el = document.getElementById('demoTicker');
+    if (el) el.innerHTML = '▸ <b>'+msg+'</b>';
+  }
+  function openDemo(){
+    document.getElementById('demoOverlay').classList.add('open');
+    render();
+  }
+  function closeDemo(){ document.getElementById('demoOverlay').classList.remove('open'); }
+  function enterTenant(id, role){
+    S.tenantId = id; S.level = 'tenant'; S.role = role; S.viewRole = 'Owner';
+    if (role === 'retailer'){
+      const first = S.retailersList.find(r => r.tenantId === id);
+      S.retailerId = first ? first.id : null;
+    }
+    render();
+  }
+  function backToPlatform(){ S.level='platform'; S.tenantId=null; render(); }
+  function setRole(r){ S.role = r; if(r==='retailer'){ const first = S.retailersList.find(x=>x.tenantId===S.tenantId); S.retailerId = first?first.id:null; } render(); }
+  // ---- LOOPING COUNTDOWN TIMERS ----
+  // instant orders count down live; on hitting zero they sit at "Delivered" for a
+  // few seconds, then automatically restart as a fresh cycle so the demo never goes quiet.
+  setInterval(() => {
+    let touched = false;
+    S.orders.forEach(o => {
+      if (o.mode !== 'instant') return;
+      if (o.status === 'Delivered'){
+        if (Date.now() - o.deliveredAt > 3500){
+          o.status = 'Placed';
+          o.remaining = o.etaMinutes * 60;
+          o.deliveredAt = null;
+          o.id = 'IN-' + Math.random().toString(36).slice(2,6).toUpperCase();
+          pushTick(o.id + ' placed by ' + o.retailerName);
+          touched = true;
+        }
+        return;
+      }
+      o.remaining -= 1;
+      touched = true;
+      if (o.remaining <= 0){
+        o.remaining = 0; o.status = 'Delivered'; o.deliveredAt = Date.now();
+        pushTick(o.id + ' delivered to ' + o.retailerName);
+      } else {
+        const pct = 1 - o.remaining / (o.etaMinutes*60);
+        if (pct > 0.66 && o.status !== 'Out for delivery'){ o.status = 'Out for delivery'; pushTick(o.id+' out for delivery'); }
+        else if (pct > 0.33 && o.status === 'Placed'){ o.status = 'Packed'; pushTick(o.id+' packed'); }
+      }
+    });
+    if (touched && document.getElementById('demoOverlay').classList.contains('open') && !S.checkoutOpen && !S.newTenantOpen){
+      render();
+    }
+  }, 1000);
+  function render(){
+    renderCrumb();
+    const body = document.getElementById('demoBody');
+    if (S.level === 'platform') body.innerHTML = renderPlatform();
+    else if (S.role === 'admin') body.innerHTML = renderTenantAdmin();
+    else body.innerHTML = renderRetailer();
+  }
+  function renderCrumb(){
+    const t = S.tenants.find(x=>x.id===S.tenantId);
+    let html = '<span onclick="backToPlatform()" style="cursor:pointer;">DISPATCH OS</span>';
+    if (S.level==='tenant' && t) html += ' <span class="sep">/</span> <span class="tname">'+t.name+'</span>';
+    document.getElementById('demoCrumb').innerHTML = html;
+  }
+  function renderPlatform(){
+    const mrr = S.tenants.reduce((s,t)=>s+t.mrr,0);
+    const gmv = S.orders.reduce((s,o)=>s+o.total,0);
+    let html = '<div class="db-stats">'
+      + statCard('MRR', money2(mrr), '#34C77B')
+      + statCard('TENANTS', S.tenants.length, '#3D7EFF')
+      + statCard('GMV PROCESSED', money2(gmv), '#FF5A36')
+      + statCard('LIVE ORDERS', S.orders.length, '#FFC24B')
+      + '</div>';
+    html += '<div class="db-newbar"><span class="db-label">TENANTS</span><button class="db-btn-primary" onclick="showNewTenant()">+ Onboard distributor</button></div>';
+    html += '<div class="db-tgrid">';
+    S.tenants.forEach(t=>{
+      const pCount = S.products.filter(p=>p.tenantId===t.id).length;
+      const rCount = S.retailersList.filter(r=>r.tenantId===t.id).length;
+      html += `<div class="db-tcard">
+        <div class="tt"><b>${t.name}</b><span class="plan">${t.plan}</span></div>
+        <div class="meta">${t.category} · ${t.city}</div>
+        <div class="meta">${pCount} SKUs · ${rCount} retailers · ${money2(t.mrr)}/mo</div>
+        <div class="btnrow">
+          <button class="db-btn" onclick="enterTenant('${t.id}','admin')">Console</button>
+          <button class="db-btn" onclick="enterTenant('${t.id}','retailer')">Retailer view</button>
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+    return html;
+  }
+  function statCard(label,val,color){
+    return `<div class="db-stat"><div class="l">${label}</div><div class="n" style="color:${color}">${val}</div></div>`;
+  }
+  S.adminTab = 'catalog';
+  function setAdminTab(tab){ S.adminTab = tab; render(); }
+  function setViewRole(r){ S.viewRole = r; render(); }
+  function canEditStock(){ return S.viewRole === 'Owner' || S.viewRole === 'Supervisor'; }
+  function canEditCredit(){ return S.viewRole === 'Owner'; }
+  function canManageTeam(){ return S.viewRole === 'Owner'; }
+  function renderTenantAdmin(){
+    const myProducts = S.products.filter(p=>p.tenantId===S.tenantId);
+    const myRetailers = S.retailersList.filter(r=>r.tenantId===S.tenantId);
+    const myOrders = S.orders.filter(o=>o.tenantId===S.tenantId);
+    const myTeam = S.team.filter(m=>m.tenantId===S.tenantId);
+    let html = roleTabs();
+    html += `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+      <div class="db-tabs" style="margin-bottom:0;">
+        <button class="db-tab ${S.adminTab==='catalog'?'active':''}" onclick="setAdminTab('catalog')">Catalog</button>
+        <button class="db-tab ${S.adminTab==='retailers'?'active':''}" onclick="setAdminTab('retailers')">Retailers & Credit</button>
+        <button class="db-tab ${S.adminTab==='orders'?'active':''}" onclick="setAdminTab('orders')">Orders (${myOrders.length})</button>
+        <button class="db-tab ${S.adminTab==='team'?'active':''}" onclick="setAdminTab('team')">Team (${myTeam.length})</button>
+      </div>
+      <div>
+        <span class="db-label" style="margin-right:8px;">VIEWING AS</span>
+        <select class="role-select" onchange="setViewRole(this.value)">
+          <option value="Owner" ${S.viewRole==='Owner'?'selected':''}>Owner</option>
+          <option value="Supervisor" ${S.viewRole==='Supervisor'?'selected':''}>Supervisor</option>
+          <option value="Staff" ${S.viewRole==='Staff'?'selected':''}>Staff</option>
+        </select>
+      </div>
+    </div>`;
+    if (S.adminTab==='catalog'){
+      html += '<table class="db-table"><thead><tr><th>SKU</th><th>Lane</th><th>Unit price</th><th>MOQ</th><th>Stock</th><th></th></tr></thead><tbody>';
+      myProducts.forEach(p=>{
+        html += `<tr><td>${p.name}<div style="font-size:11px;color:var(--muted)">case of ${p.caseSize}</div></td>
+          <td><span class="${p.mode==='instant'?'db-pill-in':'db-pill-st'}">${p.mode==='instant'?p.eta+' min':p.days+'d'}</span></td>
+          <td class="db-mono">${money2(p.unitPrice)}</td><td>${p.moq} cases</td><td class="db-mono">${p.stock}</td>
+          <td>${canEditStock() ? `<button class="db-btn" style="width:auto;padding:4px 8px;font-size:11px;" onclick="restockProduct('${p.id}')">+200 stock</button>` : '<span style="font-size:11px;color:var(--muted);">view only</span>'}</td></tr>`;
+      });
+      html += '</tbody></table>';
+      if (!canEditStock()) html += '<div style="font-size:12px;color:var(--muted);margin-top:12px;">Staff can view stock but not restock — that needs a Supervisor or the Owner.</div>';
+    } else if (S.adminTab==='retailers'){
+      html += '<table class="db-table"><thead><tr><th>Retailer</th><th>City</th><th>Credit limit</th><th>Used</th><th>Utilisation</th><th></th></tr></thead><tbody>';
+      myRetailers.forEach(r=>{
+        const pct = Math.round(r.creditUsed/r.creditLimit*100);
+        const c = pct>85?'#FF5A36':pct>60?'#FFC24B':'#34C77B';
+        html += `<tr><td>${r.shopName}<div style="font-size:11px;color:var(--muted)">${r.owner}</div></td><td>${r.city}</td>
+          <td class="db-mono">${money2(r.creditLimit)}</td><td class="db-mono">${money2(r.creditUsed)}</td>
+          <td style="color:${c};font-weight:700;">${pct}%</td>
+          <td>${canEditCredit() ? `<button class="db-btn" style="width:auto;padding:4px 8px;font-size:11px;" onclick="adjustCreditLimit('${r.id}')">+₹10,000 limit</button>` : '<span style="font-size:11px;color:var(--muted);">locked</span>'}</td></tr>`;
+      });
+      html += '</tbody></table>';
+      if (!canEditCredit()) html += '<div style="font-size:12px;color:var(--muted);margin-top:12px;">Credit limits are Owner-only — the risk that matters most stays locked to one person.</div>';
+    } else if (S.adminTab==='orders'){
+      if (myOrders.length===0) html += '<div style="color:var(--muted)">No orders yet from retailers.</div>';
+      myOrders.forEach(o=>{
+        html += `<div class="db-order-mini"><div class="row1"><span class="${o.mode==='instant'?'db-pill-in':'db-pill-st'}">${o.id} · ${o.retailerName}</span><span style="color:var(--muted)">${o.status}</span></div>`;
+        o.items.forEach(it=> html += `<div style="font-size:12px;color:var(--muted);margin-top:4px;">${it.name} × ${it.qty}</div>`);
+        html += `<div style="font-weight:700;margin-top:6px;" class="db-mono">${money2(o.total)} <span style="font-size:11px;color:var(--muted);font-weight:400;">(${o.paymentType})</span></div></div>`;
+      });
+    } else {
+      // team tab
+      myTeam.forEach(m=>{
+        html += `<div class="team-row"><span>${m.name}</span><span class="role-badge ${m.role.toLowerCase()}">${m.role.toUpperCase()}</span></div>`;
+      });
+      if (canManageTeam()){
+        html += `<div style="margin-top:18px;">
+          <div class="db-label" style="margin-bottom:8px;">ADD TEAM MEMBER</div>
+          <div style="display:flex; gap:8px;">
+            <input id="newStaffName" class="db-input" placeholder="Full name" style="max-width:220px;" />
+            <select id="newStaffRole" class="role-select">
+              <option value="Supervisor">Supervisor</option>
+              <option value="Staff" selected>Staff</option>
+            </select>
+            <button class="db-btn-primary" onclick="addTeamMember()">+ Add</button>
+          </div>
+        </div>`;
+      } else {
+        html += '<div style="font-size:12px;color:var(--muted);margin-top:12px;">Only the Owner can add or remove team members.</div>';
+      }
+    }
+    return html;
+  }
+  function restockProduct(id){
+    if (!canEditStock()) return;
+    const p = S.products.find(x=>x.id===id);
+    p.stock += 200;
+    toast('Stock updated', p.name + ' +200 units');
+    render();
+  }
+  function adjustCreditLimit(id){
+    if (!canEditCredit()) return;
+    const r = S.retailersList.find(x=>x.id===id);
+    r.creditLimit += 10000;
+    toast('Credit limit raised', r.shopName + ' → ' + money2(r.creditLimit));
+    render();
+  }
+  function addTeamMember(){
+    if (!canManageTeam()) return;
+    const name = document.getElementById('newStaffName').value.trim();
+    const role = document.getElementById('newStaffRole').value;
+    if (!name) return;
+    S.team.push({ id:'m'+Date.now(), tenantId:S.tenantId, name, role });
+    toast('Team member added', name + ' · ' + role);
+    render();
+  }
+  function roleTabs(){
+    return `<div class="db-tabs" style="margin-bottom:24px;">
+      <button class="db-tab ${S.role==='admin'?'active':''}" onclick="setRole('admin')">Distributor Console</button>
+      <button class="db-tab ${S.role==='retailer'?'active':''}" onclick="setRole('retailer')">Retailer View</button>
+    </div>`;
+  }
+  function renderRetailer(){
+    const myProducts = S.products.filter(p=>p.tenantId===S.tenantId);
+    const myRetailers = S.retailersList.filter(r=>r.tenantId===S.tenantId);
+    const retailer = myRetailers.find(r=>r.id===S.retailerId) || myRetailers[0];
+    if (!retailer) return roleTabs() + '<div style="color:var(--muted)">No retailers on this tenant yet.</div>';
+    const myOrders = S.orders.filter(o=>o.tenantId===S.tenantId && o.retailerId===retailer.id);
+    const availableCredit = retailer.creditLimit - retailer.creditUsed;
+    const cartItems = S.cart.map(c=>({...c, product: myProducts.find(p=>p.id===c.id)})).filter(c=>c.product);
+    const total = cartItems.reduce((s,c)=>s+c.product.unitPrice*c.product.caseSize*c.cases,0);
+    let html = roleTabs();
+    html += '<div class="db-layout"><div class="db-sidebar">';
+    html += '<div class="db-label" style="margin-bottom:6px;">LOGGED IN AS</div>';
+    html += `<select class="db-select" onchange="S.retailerId=this.value; render();">`;
+    myRetailers.forEach(r=> html += `<option value="${r.id}" ${r.id===retailer.id?'selected':''}>${r.shopName}</option>`);
+    html += '</select>';
+    html += `<div class="db-credit-box"><div class="l">Available credit</div>
+      <div class="n" style="color:${availableCredit<retailer.creditLimit*0.15?'#FF5A36':'#34C77B'}">${money2(availableCredit)}</div>
+      <div class="l">of ${money2(retailer.creditLimit)} limit</div></div>`;
+    const active = myOrders.filter(o=>o.status!=='Delivered');
+    if (active.length){
+      html += '<div class="db-label" style="margin-bottom:8px;">ACTIVE ORDERS</div>';
+      active.forEach(o=>{
+        html += `<div class="db-order-mini"><div class="row1"><span class="${o.mode==='instant'?'db-pill-in':'db-pill-st'}">${o.id}</span><span style="color:var(--muted)">${o.status}</span></div>`;
+        html += o.mode==='instant' ? `<div class="cd">${pad2(Math.floor(o.remaining/60))}:${pad2(o.remaining%60)}</div>` : `<div style="font-size:12px;color:var(--muted);">Arriving in ${o.days}d</div>`;
+        html += '</div>';
+      });
+    }
+    html += '</div>'; // sidebar
+    html += '<div style="flex:1;">';
+    html += '<div class="db-cartbar"><span class="db-label">CATALOG</span>';
+    if (cartItems.length) html += `<button class="db-cartbtn" onclick="S.checkoutOpen=true; renderCheckout();">Review order (${cartItems.length}) · ${money2(total)}</button>`;
+    html += '</div>';
+    html += '<div class="db-pgrid">';
+    myProducts.forEach(p=>{
+      const inCart = cartItems.find(c=>c.id===p.id);
+      html += `<div class="db-pcard"><div class="swatch" style="background:${p.color}"><span class="tag2" style="background:${p.mode==='instant'?'#FF5A36':'#3D7EFF'}">${p.mode==='instant'?p.eta+' MIN':p.days+'D'}</span></div>
+        <div class="body"><div class="pn">${p.name}</div><div class="meta2">case of ${p.caseSize} · MOQ ${p.moq}</div>
+        <div class="price2">${money2(p.unitPrice)}/unit · ${money2(p.unitPrice*p.caseSize)}/case</div>`;
+      if (inCart){
+        html += `<div class="db-qtyrow"><button class="db-qbtn" onclick="changeCases('${p.id}',-1)">−</button><span class="db-mono">${inCart.cases} cases</span><button class="db-qbtn" onclick="changeCases('${p.id}',1)">+</button></div>`;
+      } else {
+        html += `<button class="db-addbtn" onclick="addToCart('${p.id}')">Add (min ${p.moq} cases)</button>`;
+      }
+      html += '</div></div>';
+    });
+    html += '</div></div></div>';
+    return html;
+  }
+  function addToCart(id){
+    const p = S.products.find(x=>x.id===id);
+    const ex = S.cart.find(c=>c.id===id);
+    if (ex) ex.cases += 1; else S.cart.push({id, cases:p.moq});
+    render();
+  }
+  function changeCases(id, delta){
+    const c = S.cart.find(x=>x.id===id);
+    if (!c) return;
+    c.cases += delta;
+    if (c.cases<=0) S.cart = S.cart.filter(x=>x.id!==id);
+    render();
+  }
+  function renderCheckout(){
+    const el = document.getElementById('checkoutOverlay');
+    if (!S.checkoutOpen){ el.innerHTML=''; return; }
+    const myProducts = S.products.filter(p=>p.tenantId===S.tenantId);
+    const retailer = S.retailersList.find(r=>r.id===S.retailerId);
+    const cartItems = S.cart.map(c=>({...c, product: myProducts.find(p=>p.id===c.id)})).filter(c=>c.product);
+    const total = cartItems.reduce((s,c)=>s+c.product.unitPrice*c.product.caseSize*c.cases,0);
+    const availableCredit = retailer.creditLimit - retailer.creditUsed;
+    let rows = cartItems.map(c=>`<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;"><span>${c.product.name} × ${c.cases} cases</span><span>${money2(c.product.unitPrice*c.product.caseSize*c.cases)}</span></div>`).join('');
+    el.innerHTML = `<div class="db-checkout-overlay" onclick="if(event.target===this){S.checkoutOpen=false; renderCheckout();}">
+      <div class="db-checkout">
+        <div style="font-weight:700;margin-bottom:12px;">Confirm restock order</div>
+        ${rows}
+        <div style="display:flex;justify-content:space-between;font-weight:700;margin:10px 0;border-top:1px solid var(--line);padding-top:10px;"><span>Total</span><span>${money2(total)}</span></div>
+        ${total>availableCredit?`<div style="font-size:12px;color:#FF5A36;margin-bottom:10px;">Exceeds available credit by ${money2(total-availableCredit)} — pay cash instead.</div>`:''}
+        <div style="display:flex;gap:10px;">
+          <button ${total>availableCredit?'disabled':''} onclick="placeOrder('Credit')" style="flex:1;padding:10px;background:${total>availableCredit?'#262b36':'#34C77B'};border:none;color:#0B0D11;font-weight:700;border-radius:8px;cursor:${total>availableCredit?'not-allowed':'pointer'};">Pay on credit</button>
+          <button onclick="placeOrder('Cash')" style="flex:1;padding:10px;background:#3D7EFF;border:none;color:#0B0D11;font-weight:700;border-radius:8px;cursor:pointer;">Pay cash</button>
+        </div>
+      </div>
+    </div>`;
+  }
+  function placeOrder(paymentType){
+    const myProducts = S.products.filter(p=>p.tenantId===S.tenantId);
+    const retailer = S.retailersList.find(r=>r.id===S.retailerId);
+    const cartItems = S.cart.map(c=>({...c, product: myProducts.find(p=>p.id===c.id)})).filter(c=>c.product);
+    const groups = { instant: cartItems.filter(c=>c.product.mode==='instant'), standard: cartItems.filter(c=>c.product.mode==='standard') };
+    let orderTotal = 0;
+    Object.entries(groups).forEach(([mode, items])=>{
+      if (!items.length) return;
+      const id = (mode==='instant'?'IN-':'ST-') + Math.random().toString(36).slice(2,6).toUpperCase();
+      const t = items.reduce((s,c)=>s+c.product.unitPrice*c.product.caseSize*c.cases,0);
+      orderTotal += t;
+      const base = { id, tenantId:S.tenantId, mode, retailerId:retailer.id, retailerName:retailer.shopName, paymentType,
+        items: items.map(c=>({name:c.product.name, qty:c.cases})), total:t, status:'Placed' };
+      if (mode==='instant'){ const maxEta = Math.max(...items.map(c=>c.product.eta)); S.orders.unshift({...base, etaMinutes:maxEta, remaining:maxEta*60, deliveredAt:null}); }
+      else { S.orders.unshift({...base, days: Math.max(...items.map(c=>c.product.days))}); }
+    });
+    // decrement stock
+    cartItems.forEach(c=>{ const p = S.products.find(x=>x.id===c.id); p.stock = Math.max(0, p.stock - c.cases*p.caseSize); });
+    if (paymentType==='Credit') retailer.creditUsed += orderTotal;
+    pushTick('order placed by '+retailer.shopName);
+    toast('Order placed', retailer.shopName + ' · ' + money2(orderTotal) + ' · ' + paymentType);
+    S.cart = []; S.checkoutOpen = false;
+    renderCheckout();
+    render();
+  }
+  function showNewTenant(){
+    S.newTenantOpen = true;
+    document.getElementById('newTenantOverlay').innerHTML = `
+      <div class="db-checkout-overlay" onclick="if(event.target===this){S.newTenantOpen=false; document.getElementById('newTenantOverlay').innerHTML='';}">
+        <div class="db-checkout">
+          <div style="font-weight:700;margin-bottom:14px;">Onboard a new distributor</div>
+          <div class="db-field"><div class="fl">Business name</div><input id="ntName" class="db-input" placeholder="e.g. Shree Traders" /></div>
+          <div class="db-field"><div class="fl">City</div><input id="ntCity" class="db-input" placeholder="e.g. Kanpur" /></div>
+          <div style="display:flex;gap:10px;margin-top:14px;">
+            <button onclick="S.newTenantOpen=false; document.getElementById('newTenantOverlay').innerHTML='';" style="flex:1;padding:10px;background:transparent;border:1px solid var(--line);color:var(--text);border-radius:8px;cursor:pointer;">Cancel</button>
+            <button onclick="createTenant()" style="flex:1;padding:10px;background:#34C77B;border:none;color:#0B0D11;font-weight:700;border-radius:8px;cursor:pointer;">Create</button>
+          </div>
+        </div>
+      </div>`;
+  }
+  function createTenant(){
+    const name = document.getElementById('ntName').value.trim();
+    const city = document.getElementById('ntCity').value.trim();
+    if (!name || !city) return;
+    S.tenants.push({ id:'t'+Date.now(), name, category:'FMCG & Grocery', city, plan:'Starter', mrr:1999 });
+    S.newTenantOpen = false;
+    document.getElementById('newTenantOverlay').innerHTML = '';
+    toast('Distributor onboarded', name + ' · ' + city + ' is now live on Dispatch OS');
+    render();
+  }
+  // wire every "book a demo" style CTA to open the live dashboard instead of going nowhere
+  document.querySelectorAll('a.btn-primary, .navcta').forEach(a=>{
+    a.addEventListener('click', (e)=>{ e.preventDefault(); openDemo(); document.getElementById('mobileDrawer').classList.remove('open'); });
+  });
+  // scroll-reveal for sections
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(en=>{ if (en.isIntersecting){ en.target.classList.add('visible'); io.unobserve(en.target); } });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+  // toast notifications
+  function toast(title, body){
+    let stack = document.getElementById('toastStack');
+    if (!stack){ stack = document.createElement('div'); stack.className='toast-stack'; stack.id='toastStack'; document.body.appendChild(stack); }
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.innerHTML = '<b>'+title+'</b>' + body;
+    stack.appendChild(t);
+    requestAnimationFrame(()=> t.classList.add('show'));
+    setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=> t.remove(), 300); }, 3200);
+  }
+  // =========================================================
+  // FIX: in-page anchor links (#problem, #how, etc.) were being
+  // treated as navigation/redirects in some embed contexts.
+  // Intercept every internal "#" link and scroll manually instead.
+  // =========================================================
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    // the demo-opening buttons (btn-primary / navcta) already have their own
+    // click handler with preventDefault — don't double-bind those.
+    if (a.classList.contains('btn-primary') || a.classList.contains('navcta')) return;
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      const id = a.getAttribute('href').slice(1);
+      const target = id ? document.getElementById(id) : null;
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      document.getElementById('mobileDrawer').classList.remove('open');
+    });
+  });
+  // =========================================================
+  // DAY / NIGHT THEME — auto-set from local time, toggle overrides
+  // =========================================================
+  function applyThemeForTime(){
+    const hour = new Date().getHours();
+    const isDay = hour >= 6 && hour < 18;
+    document.documentElement.setAttribute('data-theme', isDay ? 'light' : 'dark');
+    updateThemeIcon();
+  }
+  function updateThemeIcon(){
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    const icon = isLight ? '☀️' : '🌙';
+    const b1 = document.getElementById('themeToggle'); if (b1) b1.textContent = icon;
+    const b2 = document.getElementById('themeToggleMobile'); if (b2) b2.textContent = icon;
+  }
+  function toggleTheme(){
+    const current = document.documentElement.getAttribute('data-theme');
+    document.documentElement.setAttribute('data-theme', current === 'light' ? 'dark' : 'light');
+    updateThemeIcon();
+  }
+  applyThemeForTime(); // auto on load — day (6am–6pm) = light, night = dark
+  document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+  document.getElementById('themeToggleMobile').addEventListener('click', toggleTheme);
+  // re-check every 10 minutes in case someone leaves the page open across sunrise/sunset
+  setInterval(applyThemeForTime, 10 * 60 * 1000);
+  // =========================================================
+  // LANGUAGES — English, Hinglish + 6 Indian languages
+  // =========================================================
+  const LANGS = {
+    en: 'English',
+    hi: 'हिंदी',
+    hinglish: 'Hinglish',
+    mr: 'मराठी',
+    gu: 'ગુજરાતી',
+    bn: 'বাংলা',
+    ta: 'தமிழ்',
+    te: 'తెలుగు',
+  };
+  const I18N = {
+    en: {
+      nav_why:"Why it exists", nav_how:"How it works", nav_features:"Features", nav_numbers:"Your numbers", nav_pricing:"Pricing", nav_demo:"Book a demo",
+      hero_eyebrow:"BUILT FOR DISTRIBUTORS & WHOLESALERS",
+      hero_h1:"Stop running your distribution business on <em>WhatsApp and a notebook.</em>",
+      hero_sub:"Dispatch OS gives every distributor their own ordering platform — retailers browse your catalog, order in cases, pay on credit or cash, and you get one dashboard instead of forty chat threads.",
+      hero_btn1:"Book a 20-min demo", hero_btn2:"See how it works ↓", board_label:"LIVE ORDER FEED — SAMPLE TENANT",
+      stat1:"Setup cost", stat2:"To go live with your catalog", stat3:"Commission on standard orders", stat4:"Retailers can order, even off-hours",
+      problem_tag:"The problem", problem_h2:"Every distributor runs the same three fires.", problem_lead:"None of them are about demand. They\u2019re about the plumbing between you and your retailers.",
+      how_tag:"How it works", how_h2:"Three steps. You keep running the business — we remove the friction.",
+      how_s1_t:"Load your catalog once", how_s1_p:"SKUs, case sizes, MOQs, warehouse locations. Mark what ships same-day from your dark stock vs. standard route delivery.",
+      how_s2_t:"Retailers order directly", how_s2_p:"Each retail shop gets a login to your storefront — they order in cases, see live stock, and their credit limit is enforced automatically.",
+      how_s3_t:"You run it from one console", how_s3_p:"Every order, every rupee of credit exposure, every stock level — one dashboard. No more piecing it together at month-end.",
+      badge_instant:"Instant restock", badge_standard:"Scheduled route",
+      feat_tag:"What\u2019s inside", feat_h2:"Everything a distribution business actually needs — nothing it doesn\u2019t.",
+      feat1_t:"Case-based catalog", feat1_p:"Price and sell in units, cases, or bulk lots — with MOQ enforced automatically at checkout.",
+      feat2_t:"Credit limits & aging", feat2_p:"Set a credit line per retailer. Orders that would breach it get blocked before they\u2019re placed, not after.",
+      feat3_t:"Two delivery lanes", feat3_p:"Instant restock from your nearest warehouse, or standard route delivery on your regular schedule — same catalog, retailer picks.",
+      feat4_t:"One dashboard", feat4_p:"GMV, order queue, stock levels, and credit exposure — live, not reconciled at month-end.",
+      feat5_t:"Multi-warehouse", feat5_p:"Run several dark stores or depots under one account, each with its own stock and delivery radius.",
+      feat6_t:"Retailer self-serve", feat6_p:"Shop owners order at 11pm if they need to — no waiting for your salesman\u2019s next visit.",
+      calc_tag:"Your numbers", calc_h2:"What this is worth to a business your size.", calc_lead:"Rough, honest math — move the sliders to match your operation.",
+      calc_f1:"Active retailers you serve", calc_f2:"Avg. monthly order value per retailer", calc_f3:"Orders lost monthly to stockouts / mis-hears", calc_f4:"Bad debt as % of credit book",
+      calc_rlabel:"Estimated monthly value recovered", calc_rsub:"from fewer lost orders + tighter credit control", calc_rmini1:"Recovered lost-order revenue",
+      pricing_tag:"Pricing", pricing_h2:"Flat monthly fee. No commission on standard orders.", pricing_lead:"Instant-lane orders carry a small per-order fee to cover dark-store logistics. Everything else is flat.", pricing_mo:"/mo",
+      plan1_desc:"One warehouse, getting off WhatsApp.", plan1_l1:"Up to 50 retailers", plan1_l2:"1 warehouse", plan1_l3:"Standard-lane ordering", plan1_l4:"Credit limit tracking",
+      plan2_desc:"Most distributors running instant + standard.", plan2_l1:"Up to 300 retailers", plan2_l2:"Up to 3 warehouses", plan2_l3:"Instant + standard lanes", plan2_l4:"Credit aging & risk flags", plan2_l5:"Full dashboard & exports",
+      plan3_desc:"Multi-city operations.", plan3_l1:"Unlimited retailers", plan3_l2:"Unlimited warehouses", plan3_l3:"Priority support", plan3_l4:"API access",
+      talk_to_us:"Talk to us", whatsapp_us:"WhatsApp us",
+      cta_tag:"Get started", cta_h2:"Twenty minutes. Bring your actual retailer list.", cta_sub:"We\u2019ll load a slice of your real catalog into a live account and show you exactly what your retailers would see.",
+    },
+    hi: {
+      nav_why:"ज़रूरत क्यों है", nav_how:"कैसे काम करता है", nav_features:"फीचर्स", nav_numbers:"आपके आंकड़े", nav_pricing:"कीमत", nav_demo:"डेमो बुक करें",
+      hero_eyebrow:"डिस्ट्रीब्यूटर और थोक व्यापारियों के लिए",
+      hero_h1:"अपना डिस्ट्रीब्यूशन बिज़नेस <em>WhatsApp और बही-खाते</em> पर चलाना बंद करें।",
+      hero_sub:"Dispatch OS हर डिस्ट्रीब्यूटर को अपना ऑर्डरिंग प्लेटफ़ॉर्म देता है — रिटेलर आपका कैटलॉग देखते हैं, केस में ऑर्डर करते हैं, क्रेडिट या कैश में पेमेंट करते हैं, और आपको चालीस चैट की जगह एक ही डैशबोर्ड मिलता है।",
+      hero_btn1:"20-मिनट का डेमो बुक करें", hero_btn2:"देखें कैसे काम करता है ↓", board_label:"लाइव ऑर्डर फ़ीड — सैंपल टेनेंट",
+      stat1:"सेटअप लागत", stat2:"कैटलॉग लाइव करने का समय", stat3:"स्टैंडर्ड ऑर्डर पर कमीशन", stat4:"रिटेलर कभी भी ऑर्डर कर सकते हैं",
+      problem_tag:"समस्या", problem_h2:"हर डिस्ट्रीब्यूटर एक जैसी तीन आग बुझाता है।", problem_lead:"इनका डिमांड से लेना-देना नहीं है। यह आपके और रिटेलर के बीच की व्यवस्था की समस्या है।",
+      how_tag:"कैसे काम करता है", how_h2:"तीन कदम। बिज़नेस आप चलाते रहें — रुकावट हम हटाते हैं।",
+      how_s1_t:"एक बार कैटलॉग डालें", how_s1_p:"SKU, केस साइज़, MOQ, वेयरहाउस लोकेशन। तय करें कि क्या सेम-डे डार्क स्टॉक से जाएगा और क्या स्टैंडर्ड रूट से।",
+      how_s2_t:"रिटेलर सीधे ऑर्डर करते हैं", how_s2_p:"हर रिटेल दुकान को आपके स्टोरफ्रंट का लॉगिन मिलता है — वे केस में ऑर्डर करते हैं, लाइव स्टॉक देखते हैं, और क्रेडिट लिमिट अपने आप लागू होती है।",
+      how_s3_t:"सब कुछ एक कंसोल से चलाएं", how_s3_p:"हर ऑर्डर, हर रुपये का क्रेडिट एक्सपोज़र, हर स्टॉक लेवल — एक डैशबोर्ड में। महीने के अंत में जोड़-तोड़ की ज़रूरत नहीं।",
+      badge_instant:"इंस्टेंट रीस्टॉक", badge_standard:"शेड्यूल्ड रूट",
+      feat_tag:"इसमें क्या है", feat_h2:"एक डिस्ट्रीब्यूशन बिज़नेस को जो चाहिए, वही — कुछ फालतू नहीं।",
+      feat1_t:"केस-आधारित कैटलॉग", feat1_p:"यूनिट, केस या बल्क में कीमत तय करें — MOQ चेकआउट पर अपने आप लागू होता है।",
+      feat2_t:"क्रेडिट लिमिट और एजिंग", feat2_p:"हर रिटेलर के लिए क्रेडिट लाइन तय करें। लिमिट टूटने वाला ऑर्डर होने से पहले ही रुक जाता है।",
+      feat3_t:"दो डिलिवरी लेन", feat3_p:"नज़दीकी वेयरहाउस से इंस्टेंट रीस्टॉक, या अपने तय शेड्यूल पर स्टैंडर्ड रूट डिलिवरी — वही कैटलॉग, रिटेलर की पसंद।",
+      feat4_t:"एक डैशबोर्ड", feat4_p:"GMV, ऑर्डर क्यू, स्टॉक लेवल और क्रेडिट एक्सपोज़र — लाइव, महीने के अंत में मिलाने की ज़रूरत नहीं।",
+      feat5_t:"मल्टी-वेयरहाउस", feat5_p:"एक ही अकाउंट के तहत कई डार्क स्टोर या डिपो चलाएं, हर एक का अपना स्टॉक और डिलिवरी रेडियस।",
+      feat6_t:"रिटेलर सेल्फ-सर्व", feat6_p:"दुकानदार रात 11 बजे भी ऑर्डर कर सकते हैं — आपके सेल्समैन के अगले विज़िट का इंतज़ार नहीं।",
+      calc_tag:"आपके आंकड़े", calc_h2:"आपके साइज़ के बिज़नेस के लिए इसकी कीमत क्या है।", calc_lead:"मोटा-मोटी, ईमानदार हिसाब — अपने ऑपरेशन के हिसाब से स्लाइडर घुमाएं।",
+      calc_f1:"आप कितने रिटेलर सर्व करते हैं", calc_f2:"प्रति रिटेलर औसत मासिक ऑर्डर वैल्यू", calc_f3:"स्टॉकआउट/गलतफ़हमी से महीने में गंवाए ऑर्डर", calc_f4:"क्रेडिट बुक का कितना % बैड डेट",
+      calc_rlabel:"अनुमानित मासिक रिकवरी वैल्यू", calc_rsub:"कम गंवाए ऑर्डर + बेहतर क्रेडिट कंट्रोल से", calc_rmini1:"रिकवर हुआ ऑर्डर रेवेन्यू",
+      pricing_tag:"कीमत", pricing_h2:"फ्लैट मासिक फ़ीस। स्टैंडर्ड ऑर्डर पर कोई कमीशन नहीं।", pricing_lead:"इंस्टेंट-लेन ऑर्डर पर डार्क-स्टोर लॉजिस्टिक्स के लिए छोटी फ़ीस लगती है। बाकी सब फ्लैट है।", pricing_mo:"/माह",
+      plan1_desc:"एक वेयरहाउस, WhatsApp से आज़ादी।", plan1_l1:"50 तक रिटेलर", plan1_l2:"1 वेयरहाउस", plan1_l3:"स्टैंडर्ड-लेन ऑर्डरिंग", plan1_l4:"क्रेडिट लिमिट ट्रैकिंग",
+      plan2_desc:"इंस्टेंट + स्टैंडर्ड चलाने वाले ज़्यादातर डिस्ट्रीब्यूटर।", plan2_l1:"300 तक रिटेलर", plan2_l2:"3 तक वेयरहाउस", plan2_l3:"इंस्टेंट + स्टैंडर्ड लेन", plan2_l4:"क्रेडिट एजिंग और रिस्क फ्लैग", plan2_l5:"पूरा डैशबोर्ड और एक्सपोर्ट",
+      plan3_desc:"मल्टी-सिटी ऑपरेशन।", plan3_l1:"अनलिमिटेड रिटेलर", plan3_l2:"अनलिमिटेड वेयरहाउस", plan3_l3:"प्रायोरिटी सपोर्ट", plan3_l4:"API एक्सेस",
+      talk_to_us:"हमसे बात करें", whatsapp_us:"WhatsApp करें",
+      cta_tag:"शुरू करें", cta_h2:"बीस मिनट। अपनी असली रिटेलर लिस्ट लाएं।", cta_sub:"हम आपके असली कैटलॉग का एक हिस्सा लाइव अकाउंट में डालेंगे और दिखाएंगे कि आपके रिटेलर को क्या दिखेगा।",
+    },
+    hinglish: {
+      nav_why:"Kyun zaroori hai", nav_how:"Kaise kaam karta hai", nav_features:"Features", nav_numbers:"Aapke numbers", nav_pricing:"Pricing", nav_demo:"Demo book karein",
+      hero_eyebrow:"DISTRIBUTORS & WHOLESALERS KE LIYE BANAYA GAYA",
+      hero_h1:"Apna distribution business <em>WhatsApp aur notebook</em> pe chalana band karein.",
+      hero_sub:"Dispatch OS har distributor ko apna ordering platform deta hai — retailers aapka catalog dekhte hain, case mein order karte hain, credit ya cash pe pay karte hain, aur aapko chaalis chat threads ki jagah ek hi dashboard milta hai.",
+      hero_btn1:"20-min demo book karein", hero_btn2:"Dekhein kaise kaam karta hai ↓", board_label:"LIVE ORDER FEED — SAMPLE TENANT",
+      stat1:"Setup cost", stat2:"Catalog live karne mein time", stat3:"Standard orders pe commission", stat4:"Retailers kabhi bhi order kar sakte hain",
+      problem_tag:"Problem", problem_h2:"Har distributor same teen fires face karta hai.", problem_lead:"Inka demand se lena-dena nahi hai. Ye aapke aur retailers ke beech ki plumbing ka issue hai.",
+      how_tag:"Kaise kaam karta hai", how_h2:"Teen steps. Business aap chalate rahein — friction hum hataate hain.",
+      how_s1_t:"Ek baar catalog load karein", how_s1_p:"SKUs, case sizes, MOQs, warehouse locations. Decide karein kya same-day dark stock se jaayega aur kya standard route se.",
+      how_s2_t:"Retailers directly order karte hain", how_s2_p:"Har retail shop ko aapke storefront ka login milta hai — wo case mein order karte hain, live stock dekhte hain, aur credit limit automatically enforce hoti hai.",
+      how_s3_t:"Sab kuch ek console se chalayein", how_s3_p:"Har order, har rupee ka credit exposure, har stock level — ek hi dashboard mein. Month-end pe jodne-todne ki zarurat nahi.",
+      badge_instant:"Instant restock", badge_standard:"Scheduled route",
+      feat_tag:"Isme kya hai", feat_h2:"Distribution business ko jo chahiye, wahi — extra kuch nahi.",
+      feat1_t:"Case-based catalog", feat1_p:"Units, cases ya bulk lots mein price karein — MOQ checkout pe automatically enforce hota hai.",
+      feat2_t:"Credit limits & aging", feat2_p:"Har retailer ke liye credit line set karein. Limit todne wala order place hone se pehle hi block ho jaata hai.",
+      feat3_t:"Do delivery lanes", feat3_p:"Nazdeeki warehouse se instant restock, ya apne regular schedule pe standard route delivery — same catalog, retailer ki choice.",
+      feat4_t:"Ek dashboard", feat4_p:"GMV, order queue, stock levels, aur credit exposure — live, month-end pe reconcile karne ki zarurat nahi.",
+      feat5_t:"Multi-warehouse", feat5_p:"Ek hi account ke under kai dark stores ya depots chalayein, har ek ka apna stock aur delivery radius.",
+      feat6_t:"Retailer self-serve", feat6_p:"Shop owners raat 11 baje bhi order kar sakte hain — salesman ke agle visit ka wait nahi karna padta.",
+      calc_tag:"Aapke numbers", calc_h2:"Aapke size ke business ke liye iski value kya hai.", calc_lead:"Rough, honest math — apne operation ke hisaab se sliders move karein.",
+      calc_f1:"Aap kitne retailers serve karte hain", calc_f2:"Per retailer average monthly order value", calc_f3:"Stockouts/mis-hears se monthly lost orders", calc_f4:"Credit book ka kitna % bad debt",
+      calc_rlabel:"Estimated monthly value recovered", calc_rsub:"kam lost orders + tighter credit control se", calc_rmini1:"Recovered lost-order revenue",
+      pricing_tag:"Pricing", pricing_h2:"Flat monthly fee. Standard orders pe koi commission nahi.", pricing_lead:"Instant-lane orders pe dark-store logistics ke liye chhoti si fee lagti hai. Baaki sab flat hai.", pricing_mo:"/mahina",
+      plan1_desc:"Ek warehouse, WhatsApp se azaadi.", plan1_l1:"50 tak retailers", plan1_l2:"1 warehouse", plan1_l3:"Standard-lane ordering", plan1_l4:"Credit limit tracking",
+      plan2_desc:"Instant + standard chalane wale zyadatar distributors.", plan2_l1:"300 tak retailers", plan2_l2:"3 tak warehouses", plan2_l3:"Instant + standard lanes", plan2_l4:"Credit aging & risk flags", plan2_l5:"Full dashboard & exports",
+      plan3_desc:"Multi-city operations.", plan3_l1:"Unlimited retailers", plan3_l2:"Unlimited warehouses", plan3_l3:"Priority support", plan3_l4:"API access",
+      talk_to_us:"Humse baat karein", whatsapp_us:"WhatsApp karein",
+      cta_tag:"Shuru karein", cta_h2:"Bees minute. Apni asli retailer list laayein.", cta_sub:"Hum aapke asli catalog ka ek hissa live account mein daalenge aur dikhaayenge ki aapke retailers ko kya dikhega.",
+    },
+    mr: {
+      nav_why:"का गरजेचं आहे", nav_how:"कसं काम करतं", nav_features:"वैशिष्ट्ये", nav_numbers:"तुमचे आकडे", nav_pricing:"किंमत", nav_demo:"डेमो बुक करा",
+      hero_eyebrow:"डिस्ट्रिब्युटर आणि घाऊक व्यापाऱ्यांसाठी",
+      hero_h1:"तुमचा डिस्ट्रिब्युशन बिझनेस <em>WhatsApp आणि वहीवर</em> चालवणं थांबवा.",
+      hero_sub:"Dispatch OS प्रत्येक डिस्ट्रिब्युटरला स्वतःचं ऑर्डरिंग प्लॅटफॉर्म देतो — रिटेलर तुमचा कॅटलॉग बघतात, केसमध्ये ऑर्डर करतात, क्रेडिट किंवा रोखीने पेमेंट करतात, आणि तुम्हाला चाळीस चॅट्सऐवजी एकच डॅशबोर्ड मिळतो.",
+      hero_btn1:"20-मिनिटांचा डेमो बुक करा", hero_btn2:"कसं काम करतं ते बघा ↓", board_label:"लाइव्ह ऑर्डर फीड — सॅम्पल टेनंट",
+      stat1:"सेटअप खर्च", stat2:"कॅटलॉग लाइव्ह करायला लागणारा वेळ", stat3:"स्टँडर्ड ऑर्डरवर कमिशन", stat4:"रिटेलर कधीही ऑर्डर करू शकतात",
+      problem_tag:"समस्या", problem_h2:"प्रत्येक डिस्ट्रिब्युटर तीच तीन आग विझवत असतो.", problem_lead:"याचा मागणीशी संबंध नाही. हा तुमच्या आणि रिटेलरमधल्या यंत्रणेचा प्रश्न आहे.",
+      how_tag:"कसं काम करतं", how_h2:"तीन पायऱ्या. बिझनेस तुम्ही चालवत राहा — अडथळे आम्ही काढतो.",
+      how_s1_t:"एकदाच कॅटलॉग टाका", how_s1_p:"SKU, केस साइझ, MOQ, वेअरहाऊस लोकेशन. ठरवा काय same-day dark stock मधून जाईल आणि काय standard route ने.",
+      how_s2_t:"रिटेलर थेट ऑर्डर करतात", how_s2_p:"प्रत्येक दुकानाला तुमच्या स्टोअरफ्रंटचा लॉगिन मिळतो — ते केसमध्ये ऑर्डर करतात, लाइव्ह स्टॉक बघतात, आणि क्रेडिट लिमिट आपोआप लागू होते.",
+      how_s3_t:"सगळं एका कन्सोलमधून चालवा", how_s3_p:"प्रत्येक ऑर्डर, प्रत्येक रुपयाचा क्रेडिट एक्सपोजर, प्रत्येक स्टॉक लेव्हल — एका डॅशबोर्डमध्ये.",
+      badge_instant:"इन्स्टंट रीस्टॉक", badge_standard:"शेड्युल्ड रूट",
+      feat_tag:"यात काय आहे", feat_h2:"डिस्ट्रिब्युशन बिझनेसला हवं तेच — जास्त काही नाही.",
+      feat1_t:"केस-बेस्ड कॅटलॉग", feat1_p:"युनिट, केस किंवा बल्कमध्ये किंमत ठरवा — MOQ चेकआउटवर आपोआप लागू होतो.",
+      feat2_t:"क्रेडिट लिमिट आणि एजिंग", feat2_p:"प्रत्येक रिटेलरसाठी क्रेडिट लाइन ठरवा. लिमिट तोडणारा ऑर्डर होण्याआधीच थांबतो.",
+      feat3_t:"दोन डिलिव्हरी लेन", feat3_p:"जवळच्या वेअरहाऊसमधून इन्स्टंट रीस्टॉक, किंवा ठरलेल्या वेळापत्रकानुसार स्टँडर्ड रूट डिलिव्हरी.",
+      feat4_t:"एक डॅशबोर्ड", feat4_p:"GMV, ऑर्डर क्यू, स्टॉक लेव्हल, क्रेडिट एक्सपोजर — लाइव्ह, महिन्याअखेर जुळवायची गरज नाही.",
+      feat5_t:"मल्टी-वेअरहाऊस", feat5_p:"एकाच अकाउंटखाली अनेक डार्क स्टोअर्स किंवा डेपो चालवा.",
+      feat6_t:"रिटेलर सेल्फ-सर्व्ह", feat6_p:"दुकानदार रात्री 11 वाजताही ऑर्डर करू शकतात.",
+      calc_tag:"तुमचे आकडे", calc_h2:"तुमच्या आकाराच्या बिझनेससाठी याची किंमत काय आहे.", calc_lead:"ढोबळ, प्रामाणिक हिशोब — तुमच्या ऑपरेशननुसार स्लायडर हलवा.",
+      calc_f1:"तुम्ही किती रिटेलर सर्व्ह करता", calc_f2:"प्रति रिटेलर सरासरी मासिक ऑर्डर व्हॅल्यू", calc_f3:"स्टॉकआउटमुळे महिन्याला गमावलेले ऑर्डर", calc_f4:"क्रेडिट बुकपैकी किती % बॅड डेट",
+      calc_rlabel:"अंदाजे मासिक रिकव्हरी व्हॅल्यू", calc_rsub:"कमी गमावलेले ऑर्डर + चांगलं क्रेडिट कंट्रोल यामुळे", calc_rmini1:"रिकव्हर झालेलं ऑर्डर रेव्हेन्यू",
+      pricing_tag:"किंमत", pricing_h2:"फ्लॅट मासिक फी. स्टँडर्ड ऑर्डरवर कमिशन नाही.", pricing_lead:"इन्स्टंट-लेन ऑर्डरवर छोटी फी असते. बाकी सगळं फ्लॅट आहे.", pricing_mo:"/महिना",
+      plan1_desc:"एक वेअरहाऊस, WhatsApp मधून सुटका.", plan1_l1:"50 पर्यंत रिटेलर", plan1_l2:"1 वेअरहाऊस", plan1_l3:"स्टँडर्ड-लेन ऑर्डरिंग", plan1_l4:"क्रेडिट लिमिट ट्रॅकिंग",
+      plan2_desc:"इन्स्टंट + स्टँडर्ड चालवणारे बहुतेक डिस्ट्रिब्युटर.", plan2_l1:"300 पर्यंत रिटेलर", plan2_l2:"3 पर्यंत वेअरहाऊस", plan2_l3:"इन्स्टंट + स्टँडर्ड लेन", plan2_l4:"क्रेडिट एजिंग आणि रिस्क फ्लॅग", plan2_l5:"पूर्ण डॅशबोर्ड आणि एक्सपोर्ट",
+      plan3_desc:"मल्टी-सिटी ऑपरेशन्स.", plan3_l1:"अमर्यादित रिटेलर", plan3_l2:"अमर्यादित वेअरहाऊस", plan3_l3:"प्रायॉरिटी सपोर्ट", plan3_l4:"API अॅक्सेस",
+      talk_to_us:"आमच्याशी बोला", whatsapp_us:"WhatsApp करा",
+      cta_tag:"सुरुवात करा", cta_h2:"वीस मिनिटं. तुमची खरी रिटेलर यादी आणा.", cta_sub:"आम्ही तुमच्या खऱ्या कॅटलॉगचा काही भाग लाइव्ह अकाउंटमध्ये टाकू आणि दाखवू की तुमच्या रिटेलरना काय दिसेल.",
+    },
+    gu: {
+      nav_why:"કેમ જરૂરી છે", nav_how:"કેવી રીતે કામ કરે છે", nav_features:"ફીચર્સ", nav_numbers:"તમારા આંકડા", nav_pricing:"કિંમત", nav_demo:"ડેમો બુક કરો",
+      hero_eyebrow:"ડિસ્ટ્રિબ્યુટર અને જથ્થાબંધ વેપારીઓ માટે",
+      hero_h1:"તમારો ડિસ્ટ્રિબ્યુશન બિઝનેસ <em>WhatsApp અને ચોપડા</em> પર ચલાવવાનું બંધ કરો.",
+      hero_sub:"Dispatch OS દરેક ડિસ્ટ્રિબ્યુટરને પોતાનું ઓર્ડરિંગ પ્લેટફોર્મ આપે છે — રિટેલર તમારો કેટલોગ જુએ છે, કેસમાં ઓર્ડર કરે છે, ક્રેડિટ કે રોકડમાં પે કરે છે, અને તમને ચાલીસ ચેટને બદલે એક જ ડેશબોર્ડ મળે છે.",
+      hero_btn1:"20-મિનિટનો ડેમો બુક કરો", hero_btn2:"જુઓ કેવી રીતે કામ કરે છે ↓", board_label:"લાઇવ ઓર્ડર ફીડ — સેમ્પલ ટેનન્ટ",
+      stat1:"સેટઅપ ખર્ચ", stat2:"કેટલોગ લાઇવ કરવાનો સમય", stat3:"સ્ટાન્ડર્ડ ઓર્ડર પર કમિશન", stat4:"રિટેલર ગમે ત્યારે ઓર્ડર કરી શકે",
+      problem_tag:"સમસ્યા", problem_h2:"દરેક ડિસ્ટ્રિબ્યુટર એ જ ત્રણ આગ બુઝાવે છે.", problem_lead:"એનો માંગ સાથે સંબંધ નથી. આ તમારા અને રિટેલર વચ્ચેની વ્યવસ્થાનો પ્રશ્ન છે.",
+      how_tag:"કેવી રીતે કામ કરે છે", how_h2:"ત્રણ પગલાં. બિઝનેસ તમે ચલાવો — અડચણ અમે દૂર કરીએ.",
+      how_s1_t:"એકવાર કેટલોગ લોડ કરો", how_s1_p:"SKU, કેસ સાઇઝ, MOQ, વેરહાઉસ લોકેશન. નક્કી કરો શું same-day dark stock થી જશે.",
+      how_s2_t:"રિટેલર સીધા ઓર્ડર કરે છે", how_s2_p:"દરેક દુકાનને તમારા સ્ટોરફ્રન્ટનો લોગિન મળે છે — તેઓ કેસમાં ઓર્ડર કરે છે, ક્રેડિટ લિમિટ આપોઆપ લાગુ થાય છે.",
+      how_s3_t:"બધું એક કન્સોલથી ચલાવો", how_s3_p:"દરેક ઓર્ડર, ક્રેડિટ એક્સપોઝર, સ્ટોક લેવલ — એક જ ડેશબોર્ડમાં.",
+      badge_instant:"ઇન્સ્ટન્ટ રીસ્ટોક", badge_standard:"શેડ્યુલ્ડ રૂટ",
+      feat_tag:"આમાં શું છે", feat_h2:"ડિસ્ટ્રિબ્યુશન બિઝનેસને જે જોઈએ એ જ — વધારાનું કંઈ નહીં.",
+      feat1_t:"કેસ-આધારિત કેટલોગ", feat1_p:"યુનિટ, કેસ કે બલ્કમાં કિંમત નક્કી કરો — MOQ ચેકઆઉટ પર આપોઆપ લાગુ થાય છે.",
+      feat2_t:"ક્રેડિટ લિમિટ અને એજિંગ", feat2_p:"દરેક રિટેલર માટે ક્રેડિટ લાઇન સેટ કરો.",
+      feat3_t:"બે ડિલિવરી લેન", feat3_p:"નજીકના વેરહાઉસથી ઇન્સ્ટન્ટ રીસ્ટોક, અથવા શેડ્યુલ પ્રમાણે સ્ટાન્ડર્ડ ડિલિવરી.",
+      feat4_t:"એક ડેશબોર્ડ", feat4_p:"GMV, ઓર્ડર ક્યુ, સ્ટોક લેવલ અને ક્રેડિટ એક્સપોઝર — લાઇવ.",
+      feat5_t:"મલ્ટી-વેરહાઉસ", feat5_p:"એક જ એકાઉન્ટ હેઠળ અનેક ડાર્ક સ્ટોર્સ કે ડેપો ચલાવો.",
+      feat6_t:"રિટેલર સેલ્ફ-સર્વ", feat6_p:"દુકાનદાર રાત્રે 11 વાગ્યે પણ ઓર્ડર કરી શકે.",
+      calc_tag:"તમારા આંકડા", calc_h2:"તમારા સાઇઝના બિઝનેસ માટે આની કિંમત શું છે.", calc_lead:"અંદાજિત, પ્રામાણિક ગણતરી — તમારા ઓપરેશન પ્રમાણે સ્લાઇડર ખસેડો.",
+      calc_f1:"તમે કેટલા રિટેલર સર્વ કરો છો", calc_f2:"પ્રતિ રિટેલર સરેરાશ માસિક ઓર્ડર વેલ્યુ", calc_f3:"સ્ટોકઆઉટથી માસિક ગુમાવેલા ઓર્ડર", calc_f4:"ક્રેડિટ બુકનો કેટલો % બેડ ડેટ",
+      calc_rlabel:"અંદાજિત માસિક રિકવરી વેલ્યુ", calc_rsub:"ઓછા ગુમાવેલા ઓર્ડર + સારા ક્રેડિટ કંટ્રોલથી", calc_rmini1:"રિકવર થયેલી ઓર્ડર રેવન્યુ",
+      pricing_tag:"કિંમત", pricing_h2:"ફ્લેટ માસિક ફી. સ્ટાન્ડર્ડ ઓર્ડર પર કમિશન નહીં.", pricing_lead:"ઇન્સ્ટન્ટ-લેન ઓર્ડર પર નાની ફી લાગે છે. બાકી બધું ફ્લેટ છે.", pricing_mo:"/મહિનો",
+      plan1_desc:"એક વેરહાઉસ, WhatsApp થી છુટકારો.", plan1_l1:"50 સુધી રિટેલર", plan1_l2:"1 વેરહાઉસ", plan1_l3:"સ્ટાન્ડર્ડ-લેન ઓર્ડરિંગ", plan1_l4:"ક્રેડિટ લિમિટ ટ્રેકિંગ",
+      plan2_desc:"ઇન્સ્ટન્ટ + સ્ટાન્ડર્ડ ચલાવતા મોટાભાગના ડિસ્ટ્રિબ્યુટર.", plan2_l1:"300 સુધી રિટેલર", plan2_l2:"3 સુધી વેરહાઉસ", plan2_l3:"ઇન્સ્ટન્ટ + સ્ટાન્ડર્ડ લેન", plan2_l4:"ક્રેડિટ એજિંગ અને રિસ્ક ફ્લેગ", plan2_l5:"પૂરું ડેશબોર્ડ અને એક્સપોર્ટ",
+      plan3_desc:"મલ્ટી-સિટી ઓપરેશન્સ.", plan3_l1:"અમર્યાદિત રિટેલર", plan3_l2:"અમર્યાદિત વેરહાઉસ", plan3_l3:"પ્રાયોરિટી સપોર્ટ", plan3_l4:"API એક્સેસ",
+      talk_to_us:"અમારી સાથે વાત કરો", whatsapp_us:"WhatsApp કરો",
+      cta_tag:"શરૂ કરો", cta_h2:"વીસ મિનિટ. તમારી ખરી રિટેલર યાદી લાવો.", cta_sub:"અમે તમારા ખરા કેટલોગનો એક ભાગ લાઇવ એકાઉન્ટમાં નાખીશું.",
+    },
+    bn: {
+      nav_why:"কেন দরকার", nav_how:"কীভাবে কাজ করে", nav_features:"ফিচার", nav_numbers:"আপনার সংখ্যা", nav_pricing:"দাম", nav_demo:"ডেমো বুক করুন",
+      hero_eyebrow:"ডিস্ট্রিবিউটর ও পাইকারি ব্যবসায়ীদের জন্য",
+      hero_h1:"আপনার ডিস্ট্রিবিউশন ব্যবসা <em>WhatsApp আর খাতায়</em> চালানো বন্ধ করুন।",
+      hero_sub:"Dispatch OS প্রতিটি ডিস্ট্রিবিউটরকে নিজস্ব অর্ডারিং প্ল্যাটফর্ম দেয় — রিটেলাররা আপনার ক্যাটালগ দেখেন, কেসে অর্ডার করেন, ক্রেডিট বা নগদে পে করেন, আর আপনি চল্লিশটা চ্যাটের বদলে একটাই ড্যাশবোর্ড পান।",
+      hero_btn1:"২০-মিনিটের ডেমো বুক করুন", hero_btn2:"কীভাবে কাজ করে দেখুন ↓", board_label:"লাইভ অর্ডার ফিড — স্যাম্পল টেন্যান্ট",
+      stat1:"সেটআপ খরচ", stat2:"ক্যাটালগ লাইভ করতে সময়", stat3:"স্ট্যান্ডার্ড অর্ডারে কমিশন", stat4:"রিটেলাররা যেকোনো সময় অর্ডার করতে পারেন",
+      problem_tag:"সমস্যা", problem_h2:"প্রতিটি ডিস্ট্রিবিউটর একই তিনটে আগুন নেভায়।", problem_lead:"এর সাথে চাহিদার সম্পর্ক নেই। এটা আপনার আর রিটেলারের মধ্যেকার ব্যবস্থার সমস্যা।",
+      how_tag:"কীভাবে কাজ করে", how_h2:"তিনটি ধাপ। ব্যবসা আপনি চালান — বাধা আমরা সরাই।",
+      how_s1_t:"একবার ক্যাটালগ দিন", how_s1_p:"SKU, কেস সাইজ, MOQ, ওয়্যারহাউস লোকেশন। ঠিক করুন কী same-day dark stock থেকে যাবে।",
+      how_s2_t:"রিটেলাররা সরাসরি অর্ডার করেন", how_s2_p:"প্রতিটি দোকান আপনার স্টোরফ্রন্টের লগইন পায় — তারা কেসে অর্ডার করে, ক্রেডিট লিমিট স্বয়ংক্রিয়ভাবে প্রয়োগ হয়।",
+      how_s3_t:"সব একটা কনসোল থেকে চালান", how_s3_p:"প্রতিটি অর্ডার, ক্রেডিট এক্সপোজার, স্টক লেভেল — এক ড্যাশবোর্ডে।",
+      badge_instant:"ইনস্ট্যান্ট রিস্টক", badge_standard:"শিডিউলড রুট",
+      feat_tag:"এতে কী আছে", feat_h2:"একটা ডিস্ট্রিবিউশন ব্যবসার যা দরকার, ঠিক তাই — বাড়তি কিছু না।",
+      feat1_t:"কেস-ভিত্তিক ক্যাটালগ", feat1_p:"ইউনিট, কেস বা বাল্কে দাম দিন — MOQ চেকআউটে স্বয়ংক্রিয়ভাবে প্রয়োগ হয়।",
+      feat2_t:"ক্রেডিট লিমিট ও এজিং", feat2_p:"প্রতিটি রিটেলারের জন্য ক্রেডিট লাইন সেট করুন।",
+      feat3_t:"দুটি ডেলিভারি লেন", feat3_p:"কাছের ওয়্যারহাউস থেকে ইনস্ট্যান্ট রিস্টক, বা নির্ধারিত সময়ে স্ট্যান্ডার্ড রুট ডেলিভারি।",
+      feat4_t:"একটা ড্যাশবোর্ড", feat4_p:"GMV, অর্ডার কিউ, স্টক লেভেল, ক্রেডিট এক্সপোজার — লাইভ।",
+      feat5_t:"মাল্টি-ওয়্যারহাউস", feat5_p:"এক অ্যাকাউন্টে একাধিক ডার্ক স্টোর বা ডিপো চালান।",
+      feat6_t:"রিটেলার সেলফ-সার্ভ", feat6_p:"দোকানদার রাত ১১টাতেও অর্ডার করতে পারেন।",
+      calc_tag:"আপনার সংখ্যা", calc_h2:"আপনার আকারের ব্যবসার জন্য এর মূল্য কত।", calc_lead:"মোটামুটি, সৎ হিসাব — আপনার অপারেশন অনুযায়ী স্লাইডার সরান।",
+      calc_f1:"আপনি কতজন রিটেলারকে সার্ভ করেন", calc_f2:"প্রতি রিটেলার গড় মাসিক অর্ডার ভ্যালু", calc_f3:"স্টকআউটে মাসে হারানো অর্ডার", calc_f4:"ক্রেডিট বুকের কত % ব্যাড ডেট",
+      calc_rlabel:"আনুমানিক মাসিক রিকভারি ভ্যালু", calc_rsub:"কম হারানো অর্ডার + ভালো ক্রেডিট কন্ট্রোল থেকে", calc_rmini1:"রিকভার হওয়া অর্ডার রেভিনিউ",
+      pricing_tag:"দাম", pricing_h2:"ফ্ল্যাট মাসিক ফি। স্ট্যান্ডার্ড অর্ডারে কমিশন নেই।", pricing_lead:"ইনস্ট্যান্ট-লেন অর্ডারে ছোট ফি লাগে। বাকি সব ফ্ল্যাট।", pricing_mo:"/মাস",
+      plan1_desc:"একটা ওয়্যারহাউস, WhatsApp থেকে মুক্তি।", plan1_l1:"৫০ পর্যন্ত রিটেলার", plan1_l2:"১টা ওয়্যারহাউস", plan1_l3:"স্ট্যান্ডার্ড-লেন অর্ডারিং", plan1_l4:"ক্রেডিট লিমিট ট্র্যাকিং",
+      plan2_desc:"ইনস্ট্যান্ট + স্ট্যান্ডার্ড চালানো বেশিরভাগ ডিস্ট্রিবিউটর।", plan2_l1:"৩০০ পর্যন্ত রিটেলার", plan2_l2:"৩টা পর্যন্ত ওয়্যারহাউস", plan2_l3:"ইনস্ট্যান্ট + স্ট্যান্ডার্ড লেন", plan2_l4:"ক্রেডিট এজিং ও রিস্ক ফ্ল্যাগ", plan2_l5:"পূর্ণ ড্যাশবোর্ড ও এক্সপোর্ট",
+      plan3_desc:"মাল্টি-সিটি অপারেশন।", plan3_l1:"আনলিমিটেড রিটেলার", plan3_l2:"আনলিমিটেড ওয়্যারহাউস", plan3_l3:"প্রায়োরিটি সাপোর্ট", plan3_l4:"API অ্যাক্সেস",
+      talk_to_us:"আমাদের সাথে কথা বলুন", whatsapp_us:"WhatsApp করুন",
+      cta_tag:"শুরু করুন", cta_h2:"বিশ মিনিট। আপনার আসল রিটেলার লিস্ট আনুন।", cta_sub:"আমরা আপনার আসল ক্যাটালগের একটা অংশ লাইভ অ্যাকাউন্টে দেব।",
+    },
+    ta: {
+      nav_why:"ஏன் தேவை", nav_how:"எப்படி வேலை செய்கிறது", nav_features:"அம்சங்கள்", nav_numbers:"உங்கள் எண்கள்", nav_pricing:"விலை", nav_demo:"டெமோ பதிவு செய்யுங்கள்",
+      hero_eyebrow:"டிஸ்ட்ரிபியூட்டர்கள் & மொத்த வியாபாரிகளுக்காக",
+      hero_h1:"உங்கள் விநியோக வணிகத்தை <em>WhatsApp மற்றும் நோட்புக்கில்</em> நடத்துவதை நிறுத்துங்கள்.",
+      hero_sub:"Dispatch OS ஒவ்வொரு டிஸ்ட்ரிபியூட்டருக்கும் அவரவர் ஆர்டரிங் தளத்தை தருகிறது — சில்லறை வியாபாரிகள் உங்கள் கேட்டலாகைப் பார்த்து, கேஸில் ஆர்டர் செய்து, கிரெடிட் அல்லது காசில் பணம் செலுத்துகிறார்கள்.",
+      hero_btn1:"20-நிமிட டெமோ பதிவு செய்யுங்கள்", hero_btn2:"எப்படி வேலை செய்கிறது பாருங்கள் ↓", board_label:"லைவ் ஆர்டர் ஃபீட் — சாம்பிள் டெனன்ட்",
+      stat1:"செட்அப் செலவு", stat2:"கேட்டலாக் லைவ் ஆக நேரம்", stat3:"ஸ்டாண்டர்ட் ஆர்டரில் கமிஷன்", stat4:"சில்லறை வியாபாரிகள் எப்போது வேண்டுமானாலும் ஆர்டர் செய்யலாம்",
+      problem_tag:"பிரச்சனை", problem_h2:"ஒவ்வொரு டிஸ்ட்ரிபியூட்டரும் ஒரே மூன்று தீக்களை அணைக்கிறார்.", problem_lead:"இதற்கு தேவையுடன் தொடர்பில்லை. இது உங்களுக்கும் சில்லறை வியாபாரிக்கும் இடையேயான ஏற்பாட்டு பிரச்சனை.",
+      how_tag:"எப்படி வேலை செய்கிறது", how_h2:"மூன்று படிகள். வணிகத்தை நீங்கள் நடத்துங்கள் — தடையை நாங்கள் நீக்குகிறோம்.",
+      how_s1_t:"ஒருமுறை கேட்டலாக் ஏற்றுங்கள்", how_s1_p:"SKU, கேஸ் அளவு, MOQ, கிடங்கு இருப்பிடம். எது same-day dark stock மூலம் செல்லும் என தீர்மானியுங்கள்.",
+      how_s2_t:"சில்லறை வியாபாரிகள் நேரடியாக ஆர்டர் செய்கிறார்கள்", how_s2_p:"ஒவ்வொரு கடைக்கும் உங்கள் ஸ்டோர்ஃப்ரண்ட் லாகின் கிடைக்கும் — கிரெடிட் லிமிட் தானாகவே அமலாகும்.",
+      how_s3_t:"எல்லாவற்றையும் ஒரு கன்சோலில் இருந்து நடத்துங்கள்", how_s3_p:"ஒவ்வொரு ஆர்டரும், கிரெடிட் எக்ஸ்போஷரும், ஸ்டாக் அளவும் — ஒரே டாஷ்போர்டில்.",
+      badge_instant:"இன்ஸ்டன்ட் ரீஸ்டாக்", badge_standard:"திட்டமிடப்பட்ட ரூட்",
+      feat_tag:"இதில் என்ன இருக்கிறது", feat_h2:"ஒரு விநியோக வணிகத்திற்கு தேவையானது மட்டும் — கூடுதல் ஒன்றுமில்லை.",
+      feat1_t:"கேஸ்-அடிப்படையிலான கேட்டலாக்", feat1_p:"யூனிட், கேஸ் அல்லது பல்க்கில் விலை நிர்ணயிக்கவும் — MOQ செக்அவுட்டில் தானாக அமலாகும்.",
+      feat2_t:"கிரெடிட் லிமிட் & ஏஜிங்", feat2_p:"ஒவ்வொரு சில்லறை வியாபாரிக்கும் கிரெடிட் லைன் அமைக்கவும்.",
+      feat3_t:"இரண்டு டெலிவரி லேன்கள்", feat3_p:"அருகிலுள்ள கிடங்கிலிருந்து இன்ஸ்டன்ட் ரீஸ்டாக், அல்லது வழக்கமான அட்டவணையில் ஸ்டாண்டர்ட் டெலிவரி.",
+      feat4_t:"ஒரு டாஷ்போர்டு", feat4_p:"GMV, ஆர்டர் வரிசை, ஸ்டாக் அளவு, கிரெடிட் எக்ஸ்போஷர் — லைவ்.",
+      feat5_t:"பல கிடங்குகள்", feat5_p:"ஒரே கணக்கின் கீழ் பல டார்க் ஸ்டோர்கள் அல்லது டிப்போக்களை நடத்துங்கள்.",
+      feat6_t:"சில்லறை வியாபாரி சுய-சேவை", feat6_p:"கடைக்காரர்கள் இரவு 11 மணிக்கும் ஆர்டர் செய்யலாம்.",
+      calc_tag:"உங்கள் எண்கள்", calc_h2:"உங்கள் அளவிலான வணிகத்திற்கு இதன் மதிப்பு என்ன.", calc_lead:"கச்சிதமான, நேர்மையான கணக்கு — உங்கள் செயல்பாட்டிற்கு ஏற்ப ஸ்லைடர்களை நகர்த்துங்கள்.",
+      calc_f1:"நீங்கள் எத்தனை சில்லறை வியாபாரிகளுக்கு சேவை செய்கிறீர்கள்", calc_f2:"ஒரு சில்லறை வியாபாரிக்கு சராசரி மாத ஆர்டர் மதிப்பு", calc_f3:"ஸ்டாக் இல்லாததால் மாதம் இழந்த ஆர்டர்கள்", calc_f4:"கிரெடிட் புத்தகத்தில் எவ்வளவு % பேட் டெப்ட்",
+      calc_rlabel:"மதிப்பிடப்பட்ட மாத மீட்பு மதிப்பு", calc_rsub:"குறைந்த இழந்த ஆர்டர்கள் + சிறந்த கிரெடிட் கட்டுப்பாட்டால்", calc_rmini1:"மீட்கப்பட்ட ஆர்டர் வருவாய்",
+      pricing_tag:"விலை", pricing_h2:"நிலையான மாத கட்டணம். ஸ்டாண்டர்ட் ஆர்டரில் கமிஷன் இல்லை.", pricing_lead:"இன்ஸ்டன்ட்-லேன் ஆர்டர்களில் சிறிய கட்டணம். மற்றவை அனைத்தும் நிலையானது.", pricing_mo:"/மாதம்",
+      plan1_desc:"ஒரு கிடங்கு, WhatsApp இலிருந்து விடுதலை.", plan1_l1:"50 வரை சில்லறை வியாபாரிகள்", plan1_l2:"1 கிடங்கு", plan1_l3:"ஸ்டாண்டர்ட்-லேன் ஆர்டரிங்", plan1_l4:"கிரெடிட் லிமிட் கண்காணிப்பு",
+      plan2_desc:"இன்ஸ்டன்ட் + ஸ்டாண்டர்ட் நடத்தும் பெரும்பாலான டிஸ்ட்ரிபியூட்டர்கள்.", plan2_l1:"300 வரை சில்லறை வியாபாரிகள்", plan2_l2:"3 வரை கிடங்குகள்", plan2_l3:"இன்ஸ்டன்ட் + ஸ்டாண்டர்ட் லேன்கள்", plan2_l4:"கிரெடிட் ஏஜிங் & ரிஸ்க் ஃபிளாக்ஸ்", plan2_l5:"முழு டாஷ்போர்டு & எக்ஸ்போர்ட்",
+      plan3_desc:"பல நகர செயல்பாடுகள்.", plan3_l1:"வரம்பற்ற சில்லறை வியாபாரிகள்", plan3_l2:"வரம்பற்ற கிடங்குகள்", plan3_l3:"முன்னுரிமை ஆதரவு", plan3_l4:"API அணுகல்",
+      talk_to_us:"எங்களுடன் பேசுங்கள்", whatsapp_us:"WhatsApp செய்யுங்கள்",
+      cta_tag:"தொடங்குங்கள்", cta_h2:"இருபது நிமிடங்கள். உங்கள் உண்மையான சில்லறை வியாபாரி பட்டியலைக் கொண்டு வாருங்கள்.", cta_sub:"உங்கள் உண்மையான கேட்டலாகின் ஒரு பகுதியை லைவ் கணக்கில் ஏற்றுவோம்.",
+    },
+    te: {
+      nav_why:"ఎందుకు అవసరం", nav_how:"ఎలా పని చేస్తుంది", nav_features:"ఫీచర్లు", nav_numbers:"మీ సంఖ్యలు", nav_pricing:"ధర", nav_demo:"డెమో బుక్ చేయండి",
+      hero_eyebrow:"డిస్ట్రిబ్యూటర్లు & టోకు వ్యాపారుల కోసం",
+      hero_h1:"మీ డిస్ట్రిబ్యూషన్ వ్యాపారాన్ని <em>WhatsApp మరియు నోట్‌బుక్‌లో</em> నడపడం ఆపండి.",
+      hero_sub:"Dispatch OS ప్రతి డిస్ట్రిబ్యూటర్‌కి సొంత ఆర్డరింగ్ ప్లాట్‌ఫారమ్ ఇస్తుంది — రిటైలర్లు మీ కేటలాగ్ చూసి, కేసుల్లో ఆర్డర్ చేసి, క్రెడిట్ లేదా క్యాష్‌లో చెల్లిస్తారు.",
+      hero_btn1:"20-నిమిషాల డెమో బుక్ చేయండి", hero_btn2:"ఎలా పని చేస్తుందో చూడండి ↓", board_label:"లైవ్ ఆర్డర్ ఫీడ్ — నమూనా టెనెంట్",
+      stat1:"సెటప్ ఖర్చు", stat2:"కేటలాగ్ లైవ్ చేయడానికి సమయం", stat3:"స్టాండర్డ్ ఆర్డర్లపై కమిషన్", stat4:"రిటైలర్లు ఎప్పుడైనా ఆర్డర్ చేయవచ్చు",
+      problem_tag:"సమస్య", problem_h2:"ప్రతి డిస్ట్రిబ్యూటర్ అదే మూడు మంటలను ఆర్పుతున్నారు.", problem_lead:"దీనికి డిమాండ్‌తో సంబంధం లేదు. ఇది మీకూ రిటైలర్‌కూ మధ్య ఏర్పాటు సమస్య.",
+      how_tag:"ఎలా పని చేస్తుంది", how_h2:"మూడు దశలు. వ్యాపారం మీరే నడపండి — అడ్డంకిని మేము తొలగిస్తాం.",
+      how_s1_t:"ఒకసారి కేటలాగ్ లోడ్ చేయండి", how_s1_p:"SKUలు, కేస్ సైజులు, MOQలు, గోడౌన్ లొకేషన్లు. same-day dark stock నుండి ఏది వెళ్తుందో నిర్ణయించండి.",
+      how_s2_t:"రిటైలర్లు నేరుగా ఆర్డర్ చేస్తారు", how_s2_p:"ప్రతి దుకాణానికి మీ స్టోర్‌ఫ్రంట్ లాగిన్ లభిస్తుంది — క్రెడిట్ లిమిట్ ఆటోమేటిక్‌గా అమలవుతుంది.",
+      how_s3_t:"అన్నింటినీ ఒకే కన్సోల్ నుండి నడపండి", how_s3_p:"ప్రతి ఆర్డర్, క్రెడిట్ ఎక్స్‌పోజర్, స్టాక్ లెవెల్ — ఒకే డాష్‌బోర్డ్‌లో.",
+      badge_instant:"ఇన్‌స్టంట్ రీస్టాక్", badge_standard:"షెడ్యూల్డ్ రూట్",
+      feat_tag:"ఇందులో ఏముంది", feat_h2:"డిస్ట్రిబ్యూషన్ వ్యాపారానికి కావాల్సింది మాత్రమే — అదనంగా ఏమీ లేదు.",
+      feat1_t:"కేస్-ఆధారిత కేటలాగ్", feat1_p:"యూనిట్లు, కేసులు లేదా బల్క్‌లో ధర పెట్టండి — MOQ చెక్అవుట్‌లో ఆటోమేటిక్‌గా అమలవుతుంది.",
+      feat2_t:"క్రెడిట్ లిమిట్లు & ఏజింగ్", feat2_p:"ప్రతి రిటైలర్‌కి క్రెడిట్ లైన్ సెట్ చేయండి.",
+      feat3_t:"రెండు డెలివరీ లేన్లు", feat3_p:"సమీప గోడౌన్ నుండి ఇన్‌స్టంట్ రీస్టాక్, లేదా మీ షెడ్యూల్‌లో స్టాండర్డ్ రూట్ డెలివరీ.",
+      feat4_t:"ఒకే డాష్‌బోర్డ్", feat4_p:"GMV, ఆర్డర్ క్యూ, స్టాక్ లెవెల్స్, క్రెడిట్ ఎక్స్‌పోజర్ — లైవ్.",
+      feat5_t:"మల్టీ-వేర్‌హౌస్", feat5_p:"ఒకే ఖాతా కింద అనేక డార్క్ స్టోర్లు లేదా డిపోలు నడపండి.",
+      feat6_t:"రిటైలర్ సెల్ఫ్-సర్వ్", feat6_p:"దుకాణదారులు రాత్రి 11 గంటలకు కూడా ఆర్డర్ చేయవచ్చు.",
+      calc_tag:"మీ సంఖ్యలు", calc_h2:"మీ సైజు వ్యాపారానికి దీని విలువ ఎంత.", calc_lead:"ఒక అంచనా, నిజాయితీ గల లెక్క — మీ ఆపరేషన్‌కు తగ్గట్టు స్లయిడర్లు కదిలించండి.",
+      calc_f1:"మీరు ఎంతమంది రిటైలర్లకు సేవ చేస్తున్నారు", calc_f2:"ఒక్కో రిటైలర్‌కి సగటు నెలవారీ ఆర్డర్ విలువ", calc_f3:"స్టాక్ లేకపోవడం వల్ల నెలవారీ కోల్పోయిన ఆర్డర్లు", calc_f4:"క్రెడిట్ బుక్‌లో ఎంత % బ్యాడ్ డెట్",
+      calc_rlabel:"అంచనా నెలవారీ రికవరీ విలువ", calc_rsub:"తక్కువ కోల్పోయిన ఆర్డర్లు + మెరుగైన క్రెడిట్ నియంత్రణ వల్ల", calc_rmini1:"రికవర్ అయిన ఆర్డర్ రెవెన్యూ",
+      pricing_tag:"ధర", pricing_h2:"ఫ్లాట్ నెలవారీ ఫీజు. స్టాండర్డ్ ఆర్డర్లపై కమిషన్ లేదు.", pricing_lead:"ఇన్‌స్టంట్-లేన్ ఆర్డర్లపై చిన్న ఫీజు ఉంటుంది. మిగతావన్నీ ఫ్లాట్.", pricing_mo:"/నెల",
+      plan1_desc:"ఒక గోడౌన్, WhatsApp నుండి విముక్తి.", plan1_l1:"50 వరకు రిటైలర్లు", plan1_l2:"1 గోడౌన్", plan1_l3:"స్టాండర్డ్-లేన్ ఆర్డరింగ్", plan1_l4:"క్రెడిట్ లిమిట్ ట్రాకింగ్",
+      plan2_desc:"ఇన్‌స్టంట్ + స్టాండర్డ్ నడిపే చాలామంది డిస్ట్రిబ్యూటర్లు.", plan2_l1:"300 వరకు రిటైలర్లు", plan2_l2:"3 వరకు గోడౌన్లు", plan2_l3:"ఇన్‌స్టంట్ + స్టాండర్డ్ లేన్లు", plan2_l4:"క్రెడిట్ ఏజింగ్ & రిస్క్ ఫ్లాగ్స్", plan2_l5:"పూర్తి డాష్‌బోర్డ్ & ఎక్స్‌పోర్ట్స్",
+      plan3_desc:"మల్టీ-సిటీ ఆపరేషన్లు.", plan3_l1:"అపరిమిత రిటైలర్లు", plan3_l2:"అపరిమిత గోడౌన్లు", plan3_l3:"ప్రాధాన్యత మద్దతు", plan3_l4:"API యాక్సెస్",
+      talk_to_us:"మాతో మాట్లాడండి", whatsapp_us:"WhatsApp చేయండి",
+      cta_tag:"ప్రారంభించండి", cta_h2:"ఇరవై నిమిషాలు. మీ నిజమైన రిటైలర్ జాబితా తీసుకురండి.", cta_sub:"మేము మీ నిజమైన కేటలాగ్‌లో కొంత భాగాన్ని లైవ్ ఖాతాలో లోడ్ చేస్తాము.",
+    },
+  };
+  let currentLang = 'en';
+  function applyLanguage(lang){
+    currentLang = lang;
+    const dict = I18N[lang] || I18N.en;
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      if (dict[key] !== undefined) el.innerHTML = dict[key];
+    });
+    document.getElementById('langSelect').value = lang;
+    document.getElementById('langSelectMobile').value = lang;
+  }
+  function buildLangSelects(){
+    [document.getElementById('langSelect'), document.getElementById('langSelectMobile')].forEach(sel=>{
+      Object.entries(LANGS).forEach(([code,label])=>{
+        const opt = document.createElement('option');
+        opt.value = code; opt.textContent = label;
+        sel.appendChild(opt);
+      });
+      sel.addEventListener('change', (e)=> applyLanguage(e.target.value));
+    });
+  }
+  buildLangSelects();
+  applyLanguage('en');
+</script>
+</body>
+</html>
