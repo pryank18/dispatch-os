@@ -15,12 +15,25 @@ https://pryank18.github.io/dispatch-os/
 - **Multi-warehouse** — several dark stores or depots under one account, each with its own stock and delivery radius
 - **Retailer self-serve** — retailers can order any time, without waiting on a salesman's visit
 
+## Product decisions
+
+- **Block credit breaches at checkout, not after.** Today bad debt surfaces when a cheque bounces. Enforcing the limit at order time turns a collections problem into a rule.
+- **Cases and MOQs as the default unit.** Retailers reorder in cases, so the catalog, pricing, and checkout are built around that rather than single units.
+- **Two delivery lanes.** Instant restock from the nearest warehouse sits beside scheduled route delivery, because urgent and routine orders have different cost and speed trade-offs.
+- **Record payments, don't process them.** Payment gateway, route optimization, and retailer-side inventory are out of v1 to keep the first release about ordering and credit.
+
+**How I'd measure it:** orders lost to mis-heard voice notes and stockouts, bad debt as a share of the credit book, and hours spent on month-end reconciliation. Pricing tiers (Starter / Growth / Scale) are already defined for go-to-market.
+
 ## Documentation
 
 - [Product spec](docs/product-spec.md)
 - [PRD](docs/PRD.md)
 - [BRD](docs/BRD.md)
 - [MRD](docs/MRD.md)
+
+## How it was built
+
+Built AI-assisted with Claude as coding partner. Product scope, requirements (see `docs/`), and QA are mine.
 
 ## Status
 
