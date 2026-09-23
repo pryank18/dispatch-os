@@ -258,6 +258,7 @@
 </style>
 </head>
 <body>
+<div style="background:#FFD166;color:#0B0D11;text-align:center;padding:10px 16px;font-size:13px;font-weight:600;line-height:1.4;position:relative;z-index:1000;">Sample product built for my portfolio. Not a commercial offering; all data is demo data.</div>
 <nav>
   <div class="wrap">
     <div class="logo"><span class="dot"></span>DISPATCH OS</div>
@@ -266,12 +267,10 @@
       <a href="#how" data-i18n="nav_how">How it works</a>
       <a href="#features" data-i18n="nav_features">Features</a>
       <a href="#calc" data-i18n="nav_numbers">Your numbers</a>
-      <a href="#pricing" data-i18n="nav_pricing">Pricing</a>
     </div>
     <div class="nav-controls">
       <button class="icon-btn" id="themeToggle" title="Toggle day/night theme" aria-label="Toggle theme">🌙</button>
       <select class="lang-select" id="langSelect" aria-label="Language"></select>
-      <a href="#pricing" class="navcta" data-i18n="nav_demo">Book a demo</a>
     </div>
     <button class="hamburger" onclick="document.getElementById('mobileDrawer').classList.toggle('open')" aria-label="Menu"><span></span><span></span><span></span></button>
   </div>
@@ -280,12 +279,10 @@
     <a href="#how" data-i18n="nav_how">How it works</a>
     <a href="#features" data-i18n="nav_features">Features</a>
     <a href="#calc" data-i18n="nav_numbers">Your numbers</a>
-    <a href="#pricing" data-i18n="nav_pricing">Pricing</a>
     <div style="display:flex; gap:8px; margin-top:10px;">
       <button class="icon-btn" id="themeToggleMobile" title="Toggle theme">🌙</button>
       <select class="lang-select" id="langSelectMobile" aria-label="Language" style="flex:1;"></select>
     </div>
-    <a href="#pricing" class="navcta" data-i18n="nav_demo">Book a demo</a>
   </div>
 </nav>
 <header class="hero">
@@ -294,7 +291,7 @@
     <h1 data-i18n="hero_h1">Stop running your distribution business on <em>WhatsApp and a notebook.</em></h1>
     <p class="sub" data-i18n="hero_sub">Dispatch OS gives every distributor their own ordering platform — retailers browse your catalog, order in cases, pay on credit or cash, and you get one dashboard instead of forty chat threads.</p>
     <div class="herobtns">
-      <a href="#pricing" class="btn-primary" data-i18n="hero_btn1">Book a 20-min demo</a>
+      <a href="#" class="btn-primary">Open the live demo</a>
       <a href="#how" class="btn-secondary" data-i18n="hero_btn2">See how it works ↓</a>
     </div>
     <div class="board">
@@ -421,70 +418,9 @@
     </div>
   </div>
 </section>
-<section id="pricing" class="reveal">
-  <div class="wrap">
-    <div class="tag" data-i18n="pricing_tag">Pricing</div>
-    <h2 data-i18n="pricing_h2">Flat monthly fee. No commission on standard orders.</h2>
-    <p class="lead" data-i18n="pricing_lead">Instant-lane orders carry a small per-order fee to cover dark-store logistics. Everything else is flat.</p>
-    <div class="pricing-grid">
-      <div class="plan">
-        <div class="pname">Starter</div>
-        <div class="pprice">₹1,999<span data-i18n="pricing_mo">/mo</span></div>
-        <div class="pdesc" data-i18n="plan1_desc">One warehouse, getting off WhatsApp.</div>
-        <ul>
-          <li data-i18n="plan1_l1">Up to 50 retailers</li>
-          <li data-i18n="plan1_l2">1 warehouse</li>
-          <li data-i18n="plan1_l3">Standard-lane ordering</li>
-          <li data-i18n="plan1_l4">Credit limit tracking</li>
-        </ul>
-        <a href="mailto:wadherapryank@gmail.com?subject=Dispatch%20OS%20—%20Starter%20plan&body=Hi%2C%20I%27d%20like%20to%20know%20more%20about%20the%20Starter%20plan." class="pbtn" data-i18n="talk_to_us">Talk to us</a>
-      </div>
-      <div class="plan hi">
-        <div class="pname">Growth</div>
-        <div class="pprice">₹4,999<span data-i18n="pricing_mo">/mo</span></div>
-        <div class="pdesc" data-i18n="plan2_desc">Most distributors running instant + standard.</div>
-        <ul>
-          <li data-i18n="plan2_l1">Up to 300 retailers</li>
-          <li data-i18n="plan2_l2">Up to 3 warehouses</li>
-          <li data-i18n="plan2_l3">Instant + standard lanes</li>
-          <li data-i18n="plan2_l4">Credit aging &amp; risk flags</li>
-          <li data-i18n="plan2_l5">Full dashboard &amp; exports</li>
-        </ul>
-        <a href="#" class="pbtn" data-i18n="nav_demo">Book a demo</a>
-      </div>
-      <div class="plan">
-        <div class="pname">Scale</div>
-        <div class="pprice">₹9,999<span data-i18n="pricing_mo">/mo</span></div>
-        <div class="pdesc" data-i18n="plan3_desc">Multi-city operations.</div>
-        <ul>
-          <li data-i18n="plan3_l1">Unlimited retailers</li>
-          <li data-i18n="plan3_l2">Unlimited warehouses</li>
-          <li data-i18n="plan3_l3">Priority support</li>
-          <li data-i18n="plan3_l4">API access</li>
-        </ul>
-        <a href="mailto:wadherapryank@gmail.com?subject=Dispatch%20OS%20—%20Scale%20plan&body=Hi%2C%20I%27d%20like%20to%20know%20more%20about%20the%20Scale%20plan." class="pbtn" data-i18n="talk_to_us">Talk to us</a>
-      </div>
-    </div>
-  </div>
-</section>
-<section class="cta reveal">
-  <div class="wrap">
-    <div class="tag" style="text-align:center;" data-i18n="cta_tag">Get started</div>
-    <h2 data-i18n="cta_h2">Twenty minutes. Bring your actual retailer list.</h2>
-    <p class="sub" data-i18n="cta_sub">We'll load a slice of your real catalog into a live account and show you exactly what your retailers would see.</p>
-    <div class="herobtns">
-      <a href="#" class="btn-primary" data-i18n="hero_btn1">Book a 20-min demo</a>
-      <a href="https://wa.me/917397829282?text=Hi%2C%20I%27d%20like%20to%20talk%20about%20Dispatch%20OS" class="btn-secondary" target="_blank" rel="noopener" data-i18n="whatsapp_us">WhatsApp us</a>
-    </div>
-  </div>
-</section>
 <footer>
   <div class="wrap">
     <div>© 2026 Dispatch OS</div>
-    <div style="display:flex; gap:18px; align-items:center;">
-      <a href="mailto:wadherapryank@gmail.com" style="color:var(--muted);">wadherapryank@gmail.com</a>
-      <a href="https://wa.me/917397829282" target="_blank" rel="noopener" style="color:var(--muted);">+91 73978 29282</a>
-    </div>
   </div>
 </footer>
 <div class="demo-overlay" id="demoOverlay">
