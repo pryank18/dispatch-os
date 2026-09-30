@@ -1,5 +1,9 @@
 # Dispatch OS
 
+> 📘 **[Read the product case study on Notion](https://fern-appliance-85f.notion.site/3ebefd17b76681328d1ef67b614c73b4)** — problem, key decisions, what was cut and how I'd measure it.
+>
+> **Live demo:** [pryank18.github.io/dispatch-os](https://pryank18.github.io/dispatch-os/) · **Docs:** [PRD](https://github.com/pryank18/dispatch-os/blob/main/docs/PRD.md) · [BRD](https://github.com/pryank18/dispatch-os/blob/main/docs/BRD.md) · [MRD](https://github.com/pryank18/dispatch-os/blob/main/docs/MRD.md) · [Spec](https://github.com/pryank18/dispatch-os/blob/main/docs/product-spec.md) · **More work:** [Notion portfolio](https://fern-appliance-85f.notion.site/Pryank-Wadhera-3eaefd17b76680c88283e85a3217ff52)
+
 Dispatch OS is an ordering, credit, and stock platform for FMCG distributors and wholesalers — giving each distributor their own retailer-facing ordering platform in place of phone calls, voice notes, and WhatsApp threads.
 
 ## Live demo
